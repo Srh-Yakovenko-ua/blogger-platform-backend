@@ -1,0 +1,29 @@
+# Output
+dist/
+build/
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# Environment
+.env
+.env.*
+
+# Tests (опционально, если не хочешь линтить)
+coverage/
+__tests__/
+test/
+tests/
+
+# OS/IDE related
+.DS_Store
+.vscode/
+.idea/
+
+# Generated
+*.tsbuildinfo
