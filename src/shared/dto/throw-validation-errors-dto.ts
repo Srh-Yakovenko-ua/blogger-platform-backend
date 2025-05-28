@@ -16,7 +16,7 @@ export const throwValidationErrorsDTO: RequestHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  const errors = validationResult(req).formatWith(formatErrors).array();
+  const errors = validationResult(req).formatWith(formatErrors).array({ onlyFirstError: true });
   console.log(errors);
   if (errors.length) {
     res.status(HttpStatuses.BadRequest).send(createError(errors));
