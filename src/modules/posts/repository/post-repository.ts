@@ -10,6 +10,7 @@ export const postRepository = {
     const newPost: PostType = {
       id: generateShortId(),
       ...data,
+      blogName: 'mock name',
     };
 
     postsLocalDb.push(newPost);

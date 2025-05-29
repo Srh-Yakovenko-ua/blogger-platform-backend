@@ -4,5 +4,5 @@ export type PostType = {
   shortDescription: string;
   content: string;
   blogId: string;
-  blogName: null;
+  blogName: string;
 };
