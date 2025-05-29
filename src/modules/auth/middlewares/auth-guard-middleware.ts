@@ -6,7 +6,6 @@ const LOGIN = 'admin';
 const PASSWORD = 'qwerty';
 export const authGuardMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const auth = req.headers['authorization'] as string;
-  console.log(auth);
   if (!auth) {
     res
       .status(HttpStatuses.Unauthorized)

@@ -8,16 +8,15 @@ import { authGuardMiddleware } from '../../auth/middlewares/auth-guard-middlewar
 import { createError } from '../../../shared/utils/create-error';
 import { updateBlogDto } from '../dto/update-blog-dto';
 import { blogsRepository } from '../repository/blogs-repository';
-import { idValidation } from '../dto/validation-blog-fields';
 
 export const blogRouters = Router({});
 
-blogRouters.get('', (req, res) => {
+blogRouters.get('', (_req, res) => {
   const blogs = blogsRepository.getBlogs();
   res.status(HttpStatuses.Ok).send(blogs);
 });
 
-blogRouters.get('/:id', idValidation, (req: Request<{ id: string }>, res: Response) => {
+blogRouters.get('/:id', (req: Request<{ id: string }>, res: Response) => {
   const videoID = req.params.id;
 
   const findVideo = blogsRepository.getBlogById(videoID);
@@ -38,7 +37,7 @@ blogRouters.post(
   (req: Request<{}, {}, Omit<BlogType, 'id'>>, res: Response) => {
     const newBlog = blogsRepository.createBlog(req.body);
 
-    res.status(HttpStatuses.Ok).send(newBlog);
+    res.status(HttpStatuses.Created).send(newBlog);
   },
 );
 
@@ -51,23 +50,6 @@ blogRouters.put(
     const updateVideo = blogsRepository.updateBlog(req.body, req.params.id);
 
     if (updateVideo) {
-      res.status(HttpStatuses.Ok).send(updateVideo);
-    } else {
-      res
-        .status(HttpStatuses.NotFound)
-        .send(createError([{ field: 'id', message: 'Blog not found' }]));
-    }
-  },
-);
-
-blogRouters.delete(
-  '/:id',
-  authGuardMiddleware,
-  idValidation,
-  (req: Request<{ id: string }>, res: Response) => {
-    const isDelete = blogsRepository.deleteBlog(req.params.id);
-
-    if (isDelete) {
       res.sendStatus(HttpStatuses.NoContent);
     } else {
       res
@@ -76,3 +58,15 @@ blogRouters.delete(
     }
   },
 );
+
+blogRouters.delete('/:id', authGuardMiddleware, (req: Request<{ id: string }>, res: Response) => {
+  const isDelete = blogsRepository.deleteBlog(req.params.id);
+
+  if (isDelete) {
+    res.sendStatus(HttpStatuses.NoContent);
+  } else {
+    res
+      .status(HttpStatuses.NotFound)
+      .send(createError([{ field: 'id', message: 'Blog not found' }]));
+  }
+});
