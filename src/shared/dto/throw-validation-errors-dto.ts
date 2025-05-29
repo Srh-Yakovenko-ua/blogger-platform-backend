@@ -1,13 +1,12 @@
-import { FieldValidationError, Result, validationResult } from 'express-validator';
+import { validationResult } from 'express-validator';
 import { NextFunction, Response, Request, RequestHandler } from 'express';
 import { HttpStatuses } from '../enums/http-statuses';
 import { createError } from '../utils/create-error';
-import { blogRouters } from '../../modules/blogs/routers/blog.routers';
 
 const formatErrors = (error: any) => {
   return {
-    field: error.path,
     message: error.msg,
+    field: error.path,
   };
 };
 

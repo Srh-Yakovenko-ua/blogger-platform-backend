@@ -9,13 +9,13 @@ export const authGuardMiddleware = (req: Request, res: Response, next: NextFunct
   if (!auth) {
     res
       .status(HttpStatuses.Unauthorized)
-      .send(createError([{ field: 'Unauthorized', message: 'You are not authorized' }]));
+      .send(createError([{ message: 'You are not authorized', field: 'Unauthorized' }]));
   }
   const [authType, token] = auth.split(' ');
   if (authType !== 'Basic') {
     res
       .status(HttpStatuses.Unauthorized)
-      .send(createError([{ field: 'Unauthorized', message: 'You are not authorized' }]));
+      .send(createError([{ message: 'You are not authorized', field: 'Unauthorized' }]));
     return;
   }
 
@@ -25,7 +25,7 @@ export const authGuardMiddleware = (req: Request, res: Response, next: NextFunct
   if (username !== LOGIN || password !== PASSWORD) {
     res
       .status(HttpStatuses.Unauthorized)
-      .send(createError([{ field: 'Unauthorized', message: 'You are not authorized' }]));
+      .send(createError([{ message: 'You are not authorized', field: 'Unauthorized' }]));
     return;
   }
 
