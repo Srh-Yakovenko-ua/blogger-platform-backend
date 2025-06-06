@@ -1,41 +1,51 @@
-import { localBlogsDb } from '../local-db/local-blogs-db';
 import { BlogType } from '../types/blog.types';
-import { generateShortId } from '../../../shared/utils/generate-short-id';
+import { blogsCollections } from '../../../setup/setup-mongo-db';
+import { ObjectId, OptionalId } from 'mongodb';
 
 export const blogsRepository = {
-  getBlogs() {
-    return localBlogsDb;
+  async getBlogs() {
+    return await blogsCollections
+      .find()
+      .toArray()
+      .then((blogs) =>
+        blogs.map((blog) => ({
+          id: blog._id.toString(),
+          name: blog.name,
+          description: blog.description,
+          websiteUrl: blog.websiteUrl,
+        })),
+      );
   },
-  getBlogById(blogID: string) {
-    return localBlogsDb.find((video) => video.id === blogID);
+  async getBlogById(blogID: string): Promise<BlogType | null> {
+    const objectID = new ObjectId(blogID);
+    return blogsCollections.findOne({ _id: objectID }).then((blog) => {
+      if (blog)
+        return {
+          id: blog._id.toString(),
+          name: blog.name,
+          description: blog.description,
+          websiteUrl: blog.websiteUrl,
+        };
+      else return null;
+    });
   },
-  createBlog(data: Omit<BlogType, 'id'>) {
-    const newBlog: BlogType = {
-      id: generateShortId(),
-      ...data,
-    };
-    localBlogsDb.push(newBlog);
+  async createBlog(data: Omit<BlogType, 'id'>): Promise<BlogType | null> {
+    const newBlogInsert = await blogsCollections.insertOne(data as OptionalId<BlogType>);
+    return await this.getBlogById(newBlogInsert.insertedId.toString());
+  },
 
-    return newBlog;
+  async updateBlog(data: Omit<BlogType, 'id'>, blogID: string) {
+    const updateBlogResult = await blogsCollections.updateOne(
+      { _id: new ObjectId(blogID) },
+      { $set: { ...data } },
+    );
+    return updateBlogResult.matchedCount >= 1;
   },
 
-  updateBlog(data: Omit<BlogType, 'id'>, blogID: string) {
-    const findUpdateBlog = localBlogsDb.find((video) => video.id === blogID);
-    if (findUpdateBlog) {
-      Object.assign(findUpdateBlog, data);
-      return findUpdateBlog;
-    } else {
-      return null;
-    }
-  },
-
-  deleteBlog(blogID: string) {
-    const index = localBlogsDb.findIndex((blog) => blog.id === blogID);
-    if (index !== -1) {
-      localBlogsDb.splice(index, 1);
-      return true;
-    } else {
-      return null;
-    }
+  async deleteBlog(blogID: string) {
+    const deleteBlogResult = await blogsCollections.deleteOne({
+      _id: new ObjectId(blogID),
+    });
+    return deleteBlogResult.deletedCount >= 1;
   },
 };
