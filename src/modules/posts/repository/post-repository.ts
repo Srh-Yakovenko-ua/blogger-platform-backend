@@ -1,10 +1,6 @@
-import { postsLocalDb } from '../local-db/posts-local-db';
 import { PostType } from '../types/post-types';
-import { generateShortId } from '../../../shared/utils/generate-short-id';
-import { blogsCollections, postsCollections } from '../../../setup/setup-mongo-db';
-import { outputBlogData } from '../../blogs/utils/output-blog-data';
+import { postsCollections } from '../../../setup/setup-mongo-db';
 import { outputPostData } from '../utils/output-post-data';
-import { Optional } from 'express-validator/lib/context';
 import { ObjectId, OptionalId } from 'mongodb';
 
 export const postRepository = {
