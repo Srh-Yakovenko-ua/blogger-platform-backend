@@ -20,6 +20,7 @@ export const blogsRepository = {
   async createBlog(data: Omit<BlogType, 'id'>): Promise<BlogType | null> {
     const dataWithTimestamp = {
       ...data,
+      isMembership: false,
       createdAt: new Date().toISOString(),
     };
     const newBlogInsert = await blogsCollections.insertOne(
