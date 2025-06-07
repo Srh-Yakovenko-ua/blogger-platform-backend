@@ -11,7 +11,7 @@ const atlasUri = process.env.MONGO_ATLAS;
 const app = express();
 
 async function bootstrap() {
-  await runDB(localUri!);
+  await runDB(atlasUri!);
   setupApp(app);
 
   app.listen(PORT, () => {

@@ -1,4 +1,5 @@
 import {
+  idValidation,
   postBlogIdValidation,
   postContentValidation,
   postShortDescriptionValidation,
@@ -6,6 +7,7 @@ import {
 } from './validation-post-fields';
 
 export const updatePostDto = [
+  idValidation,
   postTitleValidation,
   postShortDescriptionValidation,
   postContentValidation,

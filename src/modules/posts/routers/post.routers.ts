@@ -7,11 +7,14 @@ import { postRepository } from '../repository/post-repository';
 import { PostType } from '../types/post-types';
 import { createError } from '../../../shared/utils/create-error';
 import { updatePostDto } from '../dto/update-post-dto';
+import { idValidation } from '../dto/validation-post-fields';
 
 export const postRouters = Router({});
 
-postRouters.get('', (_req: Request, res: Response) => {
-  res.status(HttpStatuses.Ok).send(postRepository.getPosts());
+postRouters.get('', async (_req: Request, res: Response) => {
+  const posts = await postRepository.getPosts();
+
+  res.status(HttpStatuses.Ok).send(posts);
 });
 
 postRouters.post(
@@ -19,31 +22,37 @@ postRouters.post(
   authGuardMiddleware,
   createPostDto,
   throwValidationErrorsDTO,
-  (req: Request<{}, {}, Omit<PostType, 'id'>>, res: Response) => {
-    res.status(HttpStatuses.Created).send(postRepository.createPost(req.body));
+  async (req: Request<{}, {}, Omit<PostType, 'id'>>, res: Response) => {
+    const newPost = await postRepository.createPost(req.body);
+    res.status(HttpStatuses.Created).send(newPost);
   },
 );
 
-postRouters.get('/:id', (req: Request<{ id: string }>, res: Response) => {
-  const findPost = postRepository.getPostById(req.params.id);
+postRouters.get(
+  '/:id',
+  idValidation,
+  throwValidationErrorsDTO,
+  async (req: Request<{ id: string }>, res: Response) => {
+    const findPost = await postRepository.getPostById(req.params.id);
 
-  if (findPost) {
-    res.status(HttpStatuses.Ok).send(findPost);
-  } else {
-    res
-      .status(HttpStatuses.NotFound)
-      .send(createError([{ field: 'id', message: 'Post not found' }]));
-  }
-});
+    if (findPost) {
+      res.status(HttpStatuses.Ok).send(findPost);
+    } else {
+      res
+        .status(HttpStatuses.NotFound)
+        .send(createError([{ field: 'id', message: 'Post not found' }]));
+    }
+  },
+);
 
 postRouters.put(
   '/:id',
   authGuardMiddleware,
   updatePostDto,
   throwValidationErrorsDTO,
-  (req: Request<{ id: string }, {}, Omit<PostType, 'id'>>, res: Response) => {
-    const updatePost = postRepository.updatePost(req.body, req.params.id);
-    if (updatePost) {
+  async (req: Request<{ id: string }, {}, Omit<PostType, 'id'>>, res: Response) => {
+    const isUpdatePost = await postRepository.updatePost(req.body, req.params.id);
+    if (isUpdatePost) {
       res.sendStatus(HttpStatuses.NoContent);
     } else {
       res
@@ -53,14 +62,20 @@ postRouters.put(
   },
 );
 
-postRouters.delete('/:id', authGuardMiddleware, (req: Request, res: Response) => {
-  const isDelete = postRepository.deletePost(req.params.id);
+postRouters.delete(
+  '/:id',
+  idValidation,
+  throwValidationErrorsDTO,
+  authGuardMiddleware,
+  async (req: Request, res: Response) => {
+    const isDelete = await postRepository.deletePost(req.params.id);
 
-  if (isDelete) {
-    res.sendStatus(HttpStatuses.NoContent);
-  } else {
-    res
-      .status(HttpStatuses.NotFound)
-      .send(createError([{ field: 'id', message: 'Blog not found' }]));
-  }
-});
+    if (isDelete) {
+      res.sendStatus(HttpStatuses.NoContent);
+    } else {
+      res
+        .status(HttpStatuses.NotFound)
+        .send(createError([{ field: 'id', message: 'Blog not found' }]));
+    }
+  },
+);

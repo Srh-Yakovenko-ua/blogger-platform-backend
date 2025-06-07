@@ -1,10 +1,13 @@
 import { Router, Response, Request } from 'express';
 import { HttpStatuses } from '../shared/enums/http-statuses';
-import { postsLocalDb } from '../modules/posts/local-db/posts-local-db';
+import { blogsCollections, postsCollections } from '../setup/setup-mongo-db';
 
 export const testingRouters = Router({});
 
-testingRouters.delete('', (_req: Request, res: Response) => {
-  postsLocalDb.length = 0;
-  res.sendStatus(HttpStatuses.NoContent);
+testingRouters.delete('', async (_req: Request, res: Response) => {
+  await Promise.allSettled([postsCollections.deleteMany({}), blogsCollections.deleteMany({})])
+    .then(() => {
+      res.sendStatus(HttpStatuses.NoContent);
+    })
+    .catch(() => {});
 });

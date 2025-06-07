@@ -1,36 +1,30 @@
 import { BlogType } from '../types/blog.types';
 import { blogsCollections } from '../../../setup/setup-mongo-db';
 import { ObjectId, OptionalId } from 'mongodb';
+import { outputBlogData } from '../utils/output-blog-data';
 
 export const blogsRepository = {
   async getBlogs() {
     return await blogsCollections
       .find()
       .toArray()
-      .then((blogs) =>
-        blogs.map((blog) => ({
-          id: blog._id.toString(),
-          name: blog.name,
-          description: blog.description,
-          websiteUrl: blog.websiteUrl,
-        })),
-      );
+      .then((blogs) => blogs.map(outputBlogData));
   },
   async getBlogById(blogID: string): Promise<BlogType | null> {
     const objectID = new ObjectId(blogID);
     return blogsCollections.findOne({ _id: objectID }).then((blog) => {
-      if (blog)
-        return {
-          id: blog._id.toString(),
-          name: blog.name,
-          description: blog.description,
-          websiteUrl: blog.websiteUrl,
-        };
+      if (blog) return outputBlogData(blog);
       else return null;
     });
   },
   async createBlog(data: Omit<BlogType, 'id'>): Promise<BlogType | null> {
-    const newBlogInsert = await blogsCollections.insertOne(data as OptionalId<BlogType>);
+    const dataWithTimestamp = {
+      ...data,
+      createdAt: new Date().toISOString(),
+    };
+    const newBlogInsert = await blogsCollections.insertOne(
+      dataWithTimestamp as OptionalId<BlogType>,
+    );
     return await this.getBlogById(newBlogInsert.insertedId.toString());
   },
 
