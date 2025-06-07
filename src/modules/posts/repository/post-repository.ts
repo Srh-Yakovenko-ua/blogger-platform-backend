@@ -17,6 +17,7 @@ export const postRepository = {
   async createPost(data: Omit<PostType, 'id'>) {
     const dataWithTimestamp = {
       ...data,
+      blogName: 'random',
       createdAt: new Date().toISOString(),
     };
     const newPostInsert = await postsCollections.insertOne(
