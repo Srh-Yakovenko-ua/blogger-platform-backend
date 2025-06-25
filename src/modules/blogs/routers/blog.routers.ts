@@ -8,11 +8,12 @@ import { createError } from '../../../shared/utils/create-error';
 import { updateBlogDto } from '../dto/update-blog-dto';
 import { blogsRepository } from '../repository/blogs-repository';
 import { idValidation } from '../dto/validation-blog-fields';
+import { blogService } from '../service/blog.service';
 
 export const blogRouters = Router({});
 
 blogRouters.get('', async (_req, res) => {
-  const blogs = await blogsRepository.getBlogs();
+  const blogs = await blogService.getBlogs();
   res.status(HttpStatuses.Ok).send(blogs);
 });
 
@@ -23,8 +24,7 @@ blogRouters.get(
   async (req: Request<{ id: string }>, res: Response) => {
     const videoID = req.params.id;
 
-    const findVideo = await blogsRepository.getBlogById(videoID);
-    console.log(findVideo, 'video');
+    const findVideo = await blogService.getBlogById(videoID);
     if (findVideo) {
       res.status(HttpStatuses.Ok).send(findVideo);
     } else {
@@ -40,10 +40,16 @@ blogRouters.post(
   authGuardMiddleware,
   createBlogDTO,
   throwValidationErrorsDTO,
-  async (req: Request<{}, {}, Omit<BlogType, 'id'>>, res: Response) => {
-    const newBlog = await blogsRepository.createBlog(req.body);
-
-    if (newBlog) res.status(HttpStatuses.Created).send(newBlog);
+  async (req: Request<{}, {}, BlogType>, res: Response) => {
+    const newBlog = await blogService.createBlog(req.body);
+    if (newBlog) {
+      const blog = await blogService.getBlogById(newBlog.insertedId.toString());
+      res.status(HttpStatuses.Created).send(blog);
+    } else {
+      res
+        .status(HttpStatuses.NotFound)
+        .send(createError([{ field: '', message: 'Something Went Wrong' }]));
+    }
   },
 );
 
@@ -52,8 +58,8 @@ blogRouters.put(
   authGuardMiddleware,
   updateBlogDto,
   throwValidationErrorsDTO,
-  async (req: Request<{ id: string }, {}, Omit<BlogType, 'id'>>, res: Response) => {
-    const isUpdateVideo = await blogsRepository.updateBlog(req.body, req.params.id);
+  async (req: Request<{ id: string }, {}, BlogType>, res: Response) => {
+    const isUpdateVideo = await blogService.updateBlog(req.body, req.params.id);
 
     if (isUpdateVideo) {
       res.sendStatus(HttpStatuses.NoContent);
@@ -71,7 +77,7 @@ blogRouters.delete(
   throwValidationErrorsDTO,
   authGuardMiddleware,
   async (req: Request<{ id: string }>, res: Response) => {
-    const isDelete = await blogsRepository.deleteBlog(req.params.id);
+    const isDelete = await blogService.deleteBlog(req.params.id);
 
     if (isDelete) {
       res.sendStatus(HttpStatuses.NoContent);
