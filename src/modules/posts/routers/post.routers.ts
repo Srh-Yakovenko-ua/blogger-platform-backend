@@ -8,11 +8,12 @@ import { PostType } from '../types/post-types';
 import { createError } from '../../../shared/utils/create-error';
 import { updatePostDto } from '../dto/update-post-dto';
 import { idValidation } from '../dto/validation-post-fields';
+import { postService } from '../service/post.service';
 
 export const postRouters = Router({});
 
 postRouters.get('', async (_req: Request, res: Response) => {
-  const posts = await postRepository.getPosts();
+  const posts = await postService.getPosts();
 
   res.status(HttpStatuses.Ok).send(posts);
 });
@@ -22,9 +23,16 @@ postRouters.post(
   authGuardMiddleware,
   createPostDto,
   throwValidationErrorsDTO,
-  async (req: Request<{}, {}, Omit<PostType, 'id'>>, res: Response) => {
-    const newPost = await postRepository.createPost(req.body);
-    res.status(HttpStatuses.Created).send(newPost);
+  async (req: Request<{}, {}, PostType>, res: Response) => {
+    const newPostInsert = await postService.createPost(req.body);
+    if (newPostInsert) {
+      const post = await postService.getPostById(newPostInsert.insertedId.toString());
+      res.status(HttpStatuses.Created).send(post);
+    } else {
+      res
+        .status(HttpStatuses.NotFound)
+        .send(createError([{ field: '', message: 'Something Went Wrong' }]));
+    }
   },
 );
 
@@ -33,7 +41,7 @@ postRouters.get(
   idValidation,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }>, res: Response) => {
-    const findPost = await postRepository.getPostById(req.params.id);
+    const findPost = await postService.getPostById(req.params.id);
 
     if (findPost) {
       res.status(HttpStatuses.Ok).send(findPost);
@@ -50,8 +58,8 @@ postRouters.put(
   authGuardMiddleware,
   updatePostDto,
   throwValidationErrorsDTO,
-  async (req: Request<{ id: string }, {}, Omit<PostType, 'id'>>, res: Response) => {
-    const isUpdatePost = await postRepository.updatePost(req.body, req.params.id);
+  async (req: Request<{ id: string }, {}, PostType>, res: Response) => {
+    const isUpdatePost = await postService.updatePost(req.body, req.params.id);
     if (isUpdatePost) {
       res.sendStatus(HttpStatuses.NoContent);
     } else {
@@ -68,7 +76,7 @@ postRouters.delete(
   throwValidationErrorsDTO,
   authGuardMiddleware,
   async (req: Request, res: Response) => {
-    const isDelete = await postRepository.deletePost(req.params.id);
+    const isDelete = await postService.deletePost(req.params.id);
 
     if (isDelete) {
       res.sendStatus(HttpStatuses.NoContent);
