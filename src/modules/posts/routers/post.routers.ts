@@ -12,7 +12,7 @@ import { postService } from '../service/post.service';
 
 export const postRouters = Router({});
 
-postRouters.get('', async (_req: Request, res: Response) => {
+postRouters.get('', async (_req: Request<{}, {}, {}, {}>, res: Response) => {
   const posts = await postService.getPosts();
 
   res.status(HttpStatuses.Ok).send(posts);

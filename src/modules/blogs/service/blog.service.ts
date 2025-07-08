@@ -1,15 +1,17 @@
 import { outputBlogData } from '../utils/output-blog-data';
 import { blogsRepository } from '../repository/blogs-repository';
-import { BlogType } from '../types/blog.types';
+import { BlogType, InputBlogsQuery } from '../types/blog.types';
 import { Nullable } from '../../../shared/types/nullable';
 
-import { InsertOneResult, ObjectId } from 'mongodb';
-import { blogsCollections } from '../../../setup/setup-mongo-db';
+import { InsertOneResult, WithId } from 'mongodb';
 // business logic
 export const blogService = {
-  async getBlogs(): Promise<BlogType[]> {
-    const blogs = await blogsRepository.getBlogs();
-    return blogs.map(outputBlogData);
+  async getBlogs(filtersQuery: InputBlogsQuery): Promise<{
+    blogs: WithId<BlogType>[];
+    total: number;
+  }> {
+    const { blogs, totalCountBlogs } = await blogsRepository.getBlogs(filtersQuery);
+    return { blogs: blogs, total: totalCountBlogs };
   },
 
   async getBlogById(blogID: string): Promise<Nullable<BlogType>> {

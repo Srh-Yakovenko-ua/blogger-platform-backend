@@ -1,10 +1,8 @@
 import { outputPostData } from '../utils/output-post-data';
 import { postRepository } from '../repository/post-repository';
 import { PostType } from '../types/post-types';
-import { InsertOneResult, ObjectId } from 'mongodb';
+import { InsertOneResult } from 'mongodb';
 import { Nullable } from '../../../shared/types/nullable';
-import { postsCollections } from '../../../setup/setup-mongo-db';
-import { blogsRepository } from '../../blogs/repository/blogs-repository';
 
 export const postService = {
   async getPosts(): Promise<PostType[]> {

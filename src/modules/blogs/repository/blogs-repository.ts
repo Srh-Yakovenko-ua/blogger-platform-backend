@@ -1,11 +1,27 @@
-import { BlogType } from '../types/blog.types';
+import { BlogType, InputBlogsQuery } from '../types/blog.types';
 import { blogsCollections } from '../../../setup/setup-mongo-db';
 import { InsertOneResult, ObjectId, WithId } from 'mongodb';
 
 // db logic
 export const blogsRepository = {
-  async getBlogs() {
-    return await blogsCollections.find().toArray();
+  async getBlogs(filtersQuery: InputBlogsQuery) {
+    const { searchNameTerm, pageSize, pageNumber, sortBy, sortDirection } = filtersQuery;
+    const skip = (pageNumber - 1) * pageSize;
+    const filter: any = {};
+    if (searchNameTerm) {
+      filter.name = { $regex: searchNameTerm, $options: 'i' };
+    }
+
+    const blogs = await blogsCollections
+      .find(filter)
+      .sort({ [sortBy]: sortDirection })
+      .skip(skip)
+      .limit(pageSize)
+      .toArray();
+
+    const totalCountBlogs = await blogsCollections.countDocuments(filter);
+
+    return { blogs, totalCountBlogs };
   },
   async getBlogById(blogID: string): Promise<WithId<BlogType> | null> {
     const objectID = new ObjectId(blogID);
