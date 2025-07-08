@@ -1,5 +1,6 @@
-import { SortBy, SortDirection } from '../enums/blogs-enums';
 import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
+import { SortBy } from '../../../shared/enums/sort-by';
+import { SortDirections } from '../../../shared/enums/sort-directions';
 
 const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_PAGE_NUMBER = 1;
@@ -11,6 +12,6 @@ export const setFiltersQueryForBlogs = (req: Partial<PaginationQueryType>) => {
     pageSize: pageSize ? Number(pageSize) : DEFAULT_PAGE_SIZE,
     sortBy: sortBy ?? SortBy.createdAt,
     pageNumber: pageNumber ? Number(pageNumber) : DEFAULT_PAGE_NUMBER,
-    sortDirection: sortDirection ?? SortDirection.asc,
+    sortDirection: sortDirection ?? SortDirections.asc,
   };
 };
