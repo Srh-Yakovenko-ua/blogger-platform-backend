@@ -1,13 +1,17 @@
 import { outputPostData } from '../utils/output-post-data';
 import { postRepository } from '../repository/post-repository';
 import { PostType } from '../types/post-types';
-import { InsertOneResult } from 'mongodb';
+import { InsertOneResult, WithId } from 'mongodb';
 import { Nullable } from '../../../shared/types/nullable';
+import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
 
 export const postService = {
-  async getPosts(): Promise<PostType[]> {
-    const blogs = await postRepository.getPosts();
-    return blogs.map(outputPostData);
+  async getPosts(filtersQuery: PaginationQueryType): Promise<{
+    posts: WithId<PostType>[];
+    total: number;
+  }> {
+    const { posts, totalCountPosts } = await postRepository.getPosts(filtersQuery);
+    return { posts, total: totalCountPosts };
   },
 
   async getPostById(postID: string): Promise<Nullable<PostType>> {

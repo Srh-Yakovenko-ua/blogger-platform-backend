@@ -3,27 +3,36 @@ import { HttpStatuses } from '../../../shared/enums/http-statuses';
 import { authGuardMiddleware } from '../../auth/middlewares/auth-guard-middleware';
 import { createPostDto } from '../dto/create-post-dto';
 import { throwValidationErrorsDTO } from '../../../shared/dto/throw-validation-errors-dto';
-import { postRepository } from '../repository/post-repository';
 import { PostType } from '../types/post-types';
 import { createError } from '../../../shared/utils/create-error';
 import { updatePostDto } from '../dto/update-post-dto';
 import { idValidation } from '../dto/validation-post-fields';
 import { postService } from '../service/post.service';
 import { paginationAndSortingValidation } from '../../../shared/validation/pagination-and-sorting-validation';
+import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
+import { SortBy } from '../../../shared/enums/sort-by';
+import { outputPostListsWithMetaData } from '../utils/output-post-lists-with-meta-data';
+import { setFiltersQueryForPosts } from '../utils/set-filters-query-for-posts';
 
 export const postRouters = Router({});
-enum SortBy {
-  createdAt = 'createdAt',
-}
 
 postRouters.get(
   '',
   paginationAndSortingValidation(SortBy),
   throwValidationErrorsDTO,
-  async (_req: Request<{}, {}, {}, {}>, res: Response) => {
-    const posts = await postService.getPosts();
+  async (req: Request<{}, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
+    const filtersQuery = setFiltersQueryForPosts(req.query);
 
-    res.status(HttpStatuses.Ok).send(posts);
+    const { posts, total } = await postService.getPosts(filtersQuery);
+
+    const outputData = outputPostListsWithMetaData(posts, {
+      totalCount: total,
+      pagesCount: Math.ceil(total / filtersQuery.pageSize) || 1,
+      page: filtersQuery.pageNumber,
+      pageSize: filtersQuery.pageSize,
+    });
+
+    res.status(HttpStatuses.Ok).send(outputData);
   },
 );
 

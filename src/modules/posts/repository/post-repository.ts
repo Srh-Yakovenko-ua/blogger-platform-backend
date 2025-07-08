@@ -1,11 +1,27 @@
 import { PostType } from '../types/post-types';
 import { postsCollections } from '../../../setup/setup-mongo-db';
-import { outputPostData } from '../utils/output-post-data';
-import { InsertOneResult, ObjectId, OptionalId, WithId } from 'mongodb';
+import { InsertOneResult, ObjectId, WithId } from 'mongodb';
+import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
 
 export const postRepository = {
-  async getPosts(): Promise<WithId<PostType>[]> {
-    return postsCollections.find().toArray();
+  async getPosts(filtersQuery: PaginationQueryType): Promise<{
+    posts: WithId<PostType>[];
+    totalCountPosts: number;
+  }> {
+    const { pageSize, pageNumber, sortBy, sortDirection } = filtersQuery;
+    const skip = (pageNumber - 1) * pageSize;
+    const posts = await postsCollections
+      .find()
+      .sort({ [sortBy]: sortDirection })
+      .skip(skip)
+      .toArray();
+
+    const totalCountPosts = await postsCollections.countDocuments();
+
+    return {
+      posts: posts,
+      totalCountPosts,
+    };
   },
   async createPost(data: PostType): Promise<InsertOneResult<PostType>> {
     return await postsCollections.insertOne(data);

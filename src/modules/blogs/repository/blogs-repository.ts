@@ -5,7 +5,10 @@ import { PaginationQueryType } from '../../../shared/types/pagination-query-type
 
 // db logic
 export const blogsRepository = {
-  async getBlogs(filtersQuery: PaginationQueryType) {
+  async getBlogs(filtersQuery: PaginationQueryType): Promise<{
+    blogs: WithId<BlogType>[];
+    totalCountBlogs: number;
+  }> {
     const { searchNameTerm, pageSize, pageNumber, sortBy, sortDirection } = filtersQuery;
     const skip = (pageNumber - 1) * pageSize;
     const filter: any = {};
