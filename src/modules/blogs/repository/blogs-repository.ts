@@ -1,10 +1,11 @@
-import { BlogType, InputBlogsQuery } from '../types/blog.types';
+import { BlogType } from '../types/blog.types';
 import { blogsCollections } from '../../../setup/setup-mongo-db';
 import { InsertOneResult, ObjectId, WithId } from 'mongodb';
+import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
 
 // db logic
 export const blogsRepository = {
-  async getBlogs(filtersQuery: InputBlogsQuery) {
+  async getBlogs(filtersQuery: PaginationQueryType) {
     const { searchNameTerm, pageSize, pageNumber, sortBy, sortDirection } = filtersQuery;
     const skip = (pageNumber - 1) * pageSize;
     const filter: any = {};

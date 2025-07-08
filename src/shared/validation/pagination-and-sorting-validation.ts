@@ -1,13 +1,9 @@
 import { query } from 'express-validator';
-
-enum SortDirection {
-  asc = 'asc',
-  desc = 'desc',
-}
+import { SortDirections } from '../enums/sort-directions';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
-const DEFAULT_SORT_DIRECTION = SortDirection.asc;
+const DEFAULT_SORT_DIRECTION = SortDirections.asc;
 
 export function paginationAndSortingValidation<T extends string>(
   sortFieldsEnum: Record<string, T>,
@@ -36,7 +32,7 @@ export function paginationAndSortingValidation<T extends string>(
     query('sortDirection')
       .optional()
       .default(DEFAULT_SORT_DIRECTION)
-      .isIn(Object.values(SortDirection))
-      .withMessage(`Sort direction must be one of: ${Object.values(SortDirection).join(', ')}`),
+      .isIn(Object.values(SortDirections))
+      .withMessage(`Sort direction must be one of: ${Object.values(SortDirections).join(', ')}`),
   ];
 }

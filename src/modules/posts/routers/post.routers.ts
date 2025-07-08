@@ -9,14 +9,23 @@ import { createError } from '../../../shared/utils/create-error';
 import { updatePostDto } from '../dto/update-post-dto';
 import { idValidation } from '../dto/validation-post-fields';
 import { postService } from '../service/post.service';
+import { paginationAndSortingValidation } from '../../../shared/validation/pagination-and-sorting-validation';
 
 export const postRouters = Router({});
+enum SortBy {
+  createdAt = 'createdAt',
+}
 
-postRouters.get('', async (_req: Request<{}, {}, {}, {}>, res: Response) => {
-  const posts = await postService.getPosts();
+postRouters.get(
+  '',
+  paginationAndSortingValidation(SortBy),
+  throwValidationErrorsDTO,
+  async (_req: Request<{}, {}, {}, {}>, res: Response) => {
+    const posts = await postService.getPosts();
 
-  res.status(HttpStatuses.Ok).send(posts);
-});
+    res.status(HttpStatuses.Ok).send(posts);
+  },
+);
 
 postRouters.post(
   '',

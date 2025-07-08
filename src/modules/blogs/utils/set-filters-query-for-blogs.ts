@@ -1,9 +1,9 @@
-import { InputBlogsQuery } from '../types/blog.types';
 import { SortBy, SortDirection } from '../enums/blogs-enums';
+import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
 
 const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_PAGE_NUMBER = 1;
-export const setFiltersQueryForBlogs = (req: Partial<InputBlogsQuery>) => {
+export const setFiltersQueryForBlogs = (req: Partial<PaginationQueryType>) => {
   const { searchNameTerm, pageSize, pageNumber, sortBy, sortDirection } = req;
 
   return {

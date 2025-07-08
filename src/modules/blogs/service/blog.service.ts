@@ -1,12 +1,13 @@
 import { outputBlogData } from '../utils/output-blog-data';
 import { blogsRepository } from '../repository/blogs-repository';
-import { BlogType, InputBlogsQuery } from '../types/blog.types';
+import { BlogType } from '../types/blog.types';
 import { Nullable } from '../../../shared/types/nullable';
 
 import { InsertOneResult, WithId } from 'mongodb';
+import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
 // business logic
 export const blogService = {
-  async getBlogs(filtersQuery: InputBlogsQuery): Promise<{
+  async getBlogs(filtersQuery: PaginationQueryType): Promise<{
     blogs: WithId<BlogType>[];
     total: number;
   }> {
