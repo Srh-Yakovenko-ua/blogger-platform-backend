@@ -60,8 +60,6 @@ blogRouters.get(
   },
 );
 
-c;
-
 blogRouters.get(
   '/:blogId/posts',
   async (req: Request<{ blogId: string }, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
