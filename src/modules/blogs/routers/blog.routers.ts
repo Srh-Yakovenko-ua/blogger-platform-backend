@@ -79,6 +79,7 @@ blogRouters.get(
 
 blogRouters.post(
   '/:blogId/posts',
+  authGuardMiddleware,
   createPostForBlogDto,
   throwValidationErrorsDTO,
   async (req: Request<{ blogId: string }, {}, PostType, {}>, res: Response) => {
