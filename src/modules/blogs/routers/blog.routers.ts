@@ -47,11 +47,11 @@ blogRouters.get(
   idValidation,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }>, res: Response) => {
-    const videoID = req.params.id;
+    const blogID = req.params.id;
 
-    const findVideo = await blogService.getBlogById(videoID);
-    if (findVideo) {
-      res.status(HttpStatuses.Ok).send(findVideo);
+    const findBlog = await blogService.getBlogById(blogID);
+    if (findBlog) {
+      res.status(HttpStatuses.Ok).send(findBlog);
     } else {
       res
         .status(HttpStatuses.NotFound)
@@ -62,7 +62,6 @@ blogRouters.get(
 
 blogRouters.get(
   '/:blogId/posts',
-  authGuardMiddleware,
   blogIdValidation,
   paginationAndSortingValidation(SortBy),
   throwValidationErrorsDTO,
@@ -71,13 +70,19 @@ blogRouters.get(
     const filters = setFiltersQueryForPosts(req.query);
 
     const { posts, totalCountPosts } = await postService.getPostByBlogId(blogId, filters);
-    res.send({
-      items: posts.map(outputPostData),
-      totalCount: totalCountPosts,
-      pagesCount: Math.ceil(totalCountPosts / filters.pageSize) || 1,
-      page: filters.pageNumber,
-      pageSize: filters.pageSize,
-    });
+    if (posts.length) {
+      res.send({
+        items: posts.map(outputPostData),
+        totalCount: totalCountPosts,
+        pagesCount: Math.ceil(totalCountPosts / filters.pageSize) || 1,
+        page: filters.pageNumber,
+        pageSize: filters.pageSize,
+      });
+    } else {
+      res
+        .status(HttpStatuses.NotFound)
+        .send(createError([{ field: 'blogId', message: 'specificied blog is not exists' }]));
+    }
   },
 );
 
@@ -90,6 +95,12 @@ blogRouters.post(
     const blogId = req.params.blogId;
     const postInsert = await postService.createPost(req.body);
     const blog = await blogService.getBlogById(blogId);
+    if (!blog) {
+      res
+        .status(HttpStatuses.NotFound)
+        .send(createError([{ field: 'id', message: 'Blog not found' }]));
+      return;
+    }
     const post = postInsert
       ? await postService.getPostById(postInsert.insertedId.toString())
       : null;

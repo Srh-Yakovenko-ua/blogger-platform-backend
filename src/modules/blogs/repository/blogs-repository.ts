@@ -15,10 +15,10 @@ export const blogsRepository = {
     if (searchNameTerm) {
       filter.name = { $regex: searchNameTerm, $options: 'i' };
     }
-
+    const sortDirectionValue = sortDirection === 'asc' ? 1 : -1;
     const blogs = await blogsCollections
       .find(filter)
-      .sort({ [sortBy]: sortDirection })
+      .sort({ [sortBy]: sortDirectionValue })
       .skip(skip)
       .limit(pageSize)
       .toArray();

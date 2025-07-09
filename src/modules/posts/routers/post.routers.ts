@@ -23,6 +23,7 @@ postRouters.get(
   async (req: Request<{}, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
     const filtersQuery = setFiltersQueryForPosts(req.query);
 
+    console.log(filtersQuery);
     const { posts, total } = await postService.getPosts(filtersQuery);
 
     const outputData = outputPostListsWithMetaData(posts, {
