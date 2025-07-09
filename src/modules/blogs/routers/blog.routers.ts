@@ -14,7 +14,7 @@ import { setFiltersQueryForBlogs } from '../utils/set-filters-query-for-blogs';
 import { outputBlogListsWithMetaData } from '../utils/output-blog-lists-with-meta-data';
 import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
 import { SortBy } from '../../../shared/enums/sort-by';
-import { createPostForBlogDto } from '../dto/create-post-for-blog-dto';
+import { blogIdValidation, createPostForBlogDto } from '../dto/create-post-for-blog-dto';
 import { postService } from '../../posts/service/post.service';
 import { PostType } from '../../posts/types/post-types';
 import { setFiltersQueryForPosts } from '../../posts/utils/set-filters-query-for-posts';
@@ -62,6 +62,10 @@ blogRouters.get(
 
 blogRouters.get(
   '/:blogId/posts',
+  authGuardMiddleware,
+  blogIdValidation,
+  paginationAndSortingValidation(SortBy),
+  throwValidationErrorsDTO,
   async (req: Request<{ blogId: string }, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
     const blogId = req.params.blogId;
     const filters = setFiltersQueryForPosts(req.query);

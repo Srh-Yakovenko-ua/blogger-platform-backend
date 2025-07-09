@@ -5,7 +5,7 @@ import {
 } from '../../posts/dto/validation-post-fields';
 import { param } from 'express-validator';
 
-const blogIdValidation = param('blogId')
+export const blogIdValidation = param('blogId')
   .exists()
   .withMessage('ID is required')
   .isString()
