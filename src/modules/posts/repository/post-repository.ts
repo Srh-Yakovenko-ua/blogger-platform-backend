@@ -16,6 +16,7 @@ export const postRepository = {
       .find()
       .sort({ [sortBy]: sortDirectionValue })
       .skip(skip)
+      .limit(pageSize)
       .toArray();
 
     const totalCountPosts = await postsCollections.countDocuments();
@@ -38,6 +39,7 @@ export const postRepository = {
       .find({ blogId })
       .sort({ [sortBy]: sortDirection })
       .skip(skip)
+      .limit(pageSize)
       .toArray();
     const totalCountPosts = await postsCollections.countDocuments({ blogId });
     return {
