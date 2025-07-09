@@ -11,6 +11,6 @@ export const setFiltersQueryForPosts = (req: Partial<PaginationQueryType>) => {
     pageSize: pageSize ? Number(pageSize) : DEFAULT_PAGE_SIZE,
     sortBy: sortBy ?? SortBy.createdAt,
     pageNumber: pageNumber ? Number(pageNumber) : DEFAULT_PAGE_NUMBER,
-    sortDirection: sortDirection ?? SortDirections.asc,
+    sortDirection: sortDirection ?? SortDirections.desc,
   };
 };
