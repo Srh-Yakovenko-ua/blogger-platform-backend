@@ -20,6 +20,16 @@ export const postService = {
     else return null;
   },
 
+  async getPostByBlogId(
+    blogId: string,
+    filters: PaginationQueryType,
+  ): Promise<{
+    posts: WithId<PostType>[];
+    totalCountPosts: number;
+  }> {
+    return await postRepository.getPostsByBlogId(blogId, filters);
+  },
+
   async createPost(data: PostType): Promise<InsertOneResult<PostType>> {
     const dataWithTimestamp = {
       ...data,

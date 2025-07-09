@@ -14,6 +14,11 @@ import { setFiltersQueryForBlogs } from '../utils/set-filters-query-for-blogs';
 import { outputBlogListsWithMetaData } from '../utils/output-blog-lists-with-meta-data';
 import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
 import { SortBy } from '../../../shared/enums/sort-by';
+import { createPostForBlogDto } from '../dto/create-post-for-blog-dto';
+import { postService } from '../../posts/service/post.service';
+import { PostType } from '../../posts/types/post-types';
+import { setFiltersQueryForPosts } from '../../posts/utils/set-filters-query-for-posts';
+import { outputPostData } from '../../posts/utils/output-post-data';
 
 export const blogRouters = Router({});
 
@@ -51,6 +56,57 @@ blogRouters.get(
       res
         .status(HttpStatuses.NotFound)
         .send(createError([{ field: 'id', message: 'Blog not found' }]));
+    }
+  },
+);
+
+c;
+
+blogRouters.get(
+  '/:blogId/posts',
+  async (req: Request<{ blogId: string }, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
+    const blogId = req.params.blogId;
+    const filters = setFiltersQueryForPosts(req.query);
+
+    const { posts, totalCountPosts } = await postService.getPostByBlogId(blogId, filters);
+    res.send({
+      items: posts.map(outputPostData),
+      totalCount: totalCountPosts,
+      pagesCount: Math.ceil(totalCountPosts / filters.pageSize) || 1,
+      page: filters.pageNumber,
+      pageSize: filters.pageSize,
+    });
+  },
+);
+
+blogRouters.post(
+  '/:blogId/posts',
+  createPostForBlogDto,
+  throwValidationErrorsDTO,
+  async (req: Request<{ blogId: string }, {}, PostType, {}>, res: Response) => {
+    const blogId = req.params.blogId;
+    const postInsert = await postService.createPost(req.body);
+    const blog = await blogService.getBlogById(blogId);
+    const post = postInsert
+      ? await postService.getPostById(postInsert.insertedId.toString())
+      : null;
+    if (post && blog) {
+      const isUpdate = await postService.updatePost(
+        {
+          ...post,
+          blogId: blog.id,
+          blogName: blog.name,
+        },
+        post.id,
+      );
+      if (isUpdate) {
+        const newPost = await postService.getPostById(post?.id);
+        res.status(HttpStatuses.Created).send(newPost);
+      }
+    } else {
+      res
+        .status(HttpStatuses.NotFound)
+        .send(createError([{ field: '', message: 'Something Went Wrong' }]));
     }
   },
 );

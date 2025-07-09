@@ -23,6 +23,27 @@ export const postRepository = {
       totalCountPosts,
     };
   },
+  async getPostsByBlogId(
+    blogId: string,
+    filters: PaginationQueryType,
+  ): Promise<{
+    posts: WithId<PostType>[];
+    totalCountPosts: number;
+  }> {
+    const { pageSize, pageNumber, sortBy, sortDirection } = filters;
+    const skip = (pageNumber - 1) * pageSize;
+    const posts = await postsCollections
+      .find({ blogId })
+      .sort({ [sortBy]: sortDirection })
+      .skip(skip)
+      .toArray();
+    const totalCountPosts = await postsCollections.countDocuments({ blogId });
+    return {
+      posts: posts,
+      totalCountPosts,
+    };
+  },
+
   async createPost(data: PostType): Promise<InsertOneResult<PostType>> {
     return await postsCollections.insertOne(data);
   },
