@@ -18,7 +18,7 @@ export const blogsRepository = {
 
     const blogs = await blogsCollections
       .find(filter)
-      .sort(sortBy, sortDirection)
+      .sort({ [sortBy]: sortDirection })
       .skip(skip)
       .limit(pageSize)
       .toArray();

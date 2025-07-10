@@ -1,5 +1,6 @@
 import { query } from 'express-validator';
 import { SortDirections } from '../enums/sort-directions';
+import { SortBy } from '../enums/sort-by';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -25,9 +26,9 @@ export function paginationAndSortingValidation<T extends string>(
 
     query('sortBy')
       .optional()
-      .default(Object.values(sortFieldsEnum)[0])
-      .isIn(Object.values(sortFieldsEnum))
-      .withMessage(`Allowed sort fields: ${Object.values(sortFieldsEnum).join(', ')}`),
+      .default(SortBy.createdAt)
+      .isIn([SortBy.createdAt])
+      .withMessage(`Allowed sort fields: ${SortBy.createdAt}`),
 
     query('sortDirection')
       .optional()
