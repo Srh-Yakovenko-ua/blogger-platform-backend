@@ -22,12 +22,12 @@ export function paginationAndSortingValidation<T extends string>(
       .isInt({ min: 1, max: 100 })
       .withMessage('Page size must be between 1 and 100')
       .toInt(),
-
-    query('sortBy')
-      .optional()
-      .default(Object.values(sortFieldsEnum)[0])
-      .isIn(Object.values(sortFieldsEnum))
-      .withMessage(`Allowed sort fields: ${Object.values(sortFieldsEnum).join(', ')}`),
+    //
+    // query('sortBy')
+    //   .optional()
+    //   .default(Object.values(sortFieldsEnum)[0])
+    //   .isIn(Object.values(sortFieldsEnum))
+    //   .withMessage(`Allowed sort fields: ${Object.values(sortFieldsEnum).join(', ')}`),
 
     query('sortDirection')
       .optional()
