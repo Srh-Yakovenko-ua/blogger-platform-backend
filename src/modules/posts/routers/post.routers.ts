@@ -18,7 +18,7 @@ export const postRouters = Router({});
 
 postRouters.get(
   '',
-  paginationAndSortingValidation(SortBy),
+  // paginationAndSortingValidation(SortBy),
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
     const filtersQuery = setFiltersQueryForPosts(req.query);

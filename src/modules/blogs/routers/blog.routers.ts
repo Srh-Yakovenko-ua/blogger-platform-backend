@@ -24,11 +24,11 @@ export const blogRouters = Router({});
 
 blogRouters.get(
   '',
-  paginationAndSortingValidation(SortBy),
+  // paginationAndSortingValidation(SortBy),
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
     const filtersQuery = setFiltersQueryForBlogs(req.query);
-
+    console.log(filtersQuery);
     console.log(filtersQuery, 'filtersQuery');
     const { blogs, total } = await blogService.getBlogs(filtersQuery);
 
@@ -64,7 +64,7 @@ blogRouters.get(
 blogRouters.get(
   '/:blogId/posts',
   blogIdValidation,
-  paginationAndSortingValidation(SortBy),
+  // paginationAndSortingValidation(SortBy),
   throwValidationErrorsDTO,
   async (req: Request<{ blogId: string }, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
     const blogId = req.params.blogId;
