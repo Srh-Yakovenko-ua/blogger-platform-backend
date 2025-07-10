@@ -29,6 +29,7 @@ blogRouters.get(
   async (req: Request<{}, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
     const filtersQuery = setFiltersQueryForBlogs(req.query);
 
+    console.log(filtersQuery, 'filtersQuery');
     const { blogs, total } = await blogService.getBlogs(filtersQuery);
 
     const outputData = outputBlogListsWithMetaData(blogs, {

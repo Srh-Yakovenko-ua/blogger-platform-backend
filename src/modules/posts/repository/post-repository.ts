@@ -10,11 +10,10 @@ export const postRepository = {
   }> {
     const { pageSize, pageNumber, sortBy, sortDirection } = filtersQuery;
     const skip = (pageNumber - 1) * pageSize;
-    const sortDirectionValue = sortDirection === 'asc' ? 1 : -1;
 
     const posts = await postsCollections
       .find()
-      .sort({ [sortBy]: sortDirectionValue })
+      .sort(sortBy, sortDirection)
       .skip(skip)
       .limit(pageSize)
       .toArray();
@@ -39,7 +38,7 @@ export const postRepository = {
 
     const posts = await postsCollections
       .find({ blogId })
-      .sort({ [sortBy]: sortDirectionValue })
+      .sort(sortBy, sortDirection)
       .skip(skip)
       .limit(pageSize)
       .toArray();
