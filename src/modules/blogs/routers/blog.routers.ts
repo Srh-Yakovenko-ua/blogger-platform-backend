@@ -108,6 +108,7 @@ blogRouters.post(
           ...post,
           blogId: blog.id,
           blogName: blog.name,
+          createdAt: new Date().toISOString(),
         },
         post.id,
       );
