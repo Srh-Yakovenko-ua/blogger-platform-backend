@@ -8,12 +8,10 @@ import { createError } from '../../../shared/utils/create-error';
 import { updateBlogDto } from '../dto/update-blog-dto';
 import { idValidation } from '../dto/validation-blog-fields';
 import { blogService } from '../service/blog.service';
-import { paginationAndSortingValidation } from '../../../shared/validation/pagination-and-sorting-validation';
 
 import { setFiltersQueryForBlogs } from '../utils/set-filters-query-for-blogs';
 import { outputBlogListsWithMetaData } from '../utils/output-blog-lists-with-meta-data';
 import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
-import { SortBy } from '../../../shared/enums/sort-by';
 import { blogIdValidation, createPostForBlogDto } from '../dto/create-post-for-blog-dto';
 import { postService } from '../../posts/service/post.service';
 import { PostType } from '../../posts/types/post-types';
@@ -24,7 +22,6 @@ export const blogRouters = Router({});
 
 blogRouters.get(
   '',
-  // paginationAndSortingValidation(SortBy),
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
     const filtersQuery = setFiltersQueryForBlogs(req.query);

@@ -8,17 +8,17 @@ import { createError } from '../../../shared/utils/create-error';
 import { updatePostDto } from '../dto/update-post-dto';
 import { idValidation } from '../dto/validation-post-fields';
 import { postService } from '../service/post.service';
-import { paginationAndSortingValidation } from '../../../shared/validation/pagination-and-sorting-validation';
 import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
-import { SortBy } from '../../../shared/enums/sort-by';
+
 import { outputPostListsWithMetaData } from '../utils/output-post-lists-with-meta-data';
 import { setFiltersQueryForPosts } from '../utils/set-filters-query-for-posts';
+import { blogsRepository } from '../../blogs/repository/blogs-repository';
+import { outputBlogData } from '../../blogs/utils/output-blog-data';
 
 export const postRouters = Router({});
 
 postRouters.get(
   '',
-  // paginationAndSortingValidation(SortBy),
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
     const filtersQuery = setFiltersQueryForPosts(req.query);
@@ -43,7 +43,22 @@ postRouters.post(
   createPostDto,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, PostType>, res: Response) => {
-    const newPostInsert = await postService.createPost(req.body);
+    const getBlog = await blogsRepository.getBlogById(req.body.blogId);
+    if (!getBlog) {
+      res
+        .status(HttpStatuses.NotFound)
+        .send(createError([{ field: 'id', message: 'Blog not found' }]));
+      return;
+    }
+    const blog = outputBlogData(getBlog);
+    const dataWithTimestamp = {
+      ...req.body,
+      blogName: blog.name,
+      blogId: blog.id,
+      createdAt: new Date().toISOString(),
+    };
+
+    const newPostInsert = await postService.createPost(dataWithTimestamp);
     if (newPostInsert) {
       const post = await postService.getPostById(newPostInsert.insertedId.toString());
       res.status(HttpStatuses.Created).send(post);

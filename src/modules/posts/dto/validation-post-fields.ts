@@ -60,13 +60,8 @@ export const postContentValidation = body('content')
 
 export const postBlogIdValidation = body('blogId')
   .exists()
-  .withMessage('Blog ID is required')
-  .trim()
+  .withMessage('ID is required')
   .isString()
-  .withMessage('Blog ID must be a string')
-  .not()
-  .isArray()
-  .withMessage('Cannot be array')
-  .not()
-  .isObject()
-  .withMessage('Cannot be object');
+  .withMessage('ID must be a string')
+  .isMongoId()
+  .withMessage('Incorrect format of ObjectId');

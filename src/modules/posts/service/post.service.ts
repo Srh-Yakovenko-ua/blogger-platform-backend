@@ -31,13 +31,7 @@ export const postService = {
   },
 
   async createPost(data: PostType): Promise<InsertOneResult<PostType>> {
-    const dataWithTimestamp = {
-      ...data,
-      blogName: 'random',
-      createdAt: new Date().toISOString(),
-    };
-
-    return await postRepository.createPost(dataWithTimestamp);
+    return await postRepository.createPost(data);
   },
 
   async updatePost(data: PostType, postID: string): Promise<boolean> {
