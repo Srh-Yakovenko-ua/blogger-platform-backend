@@ -3,7 +3,7 @@ import { SortDirections } from '../enums/sort-directions';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
-const DEFAULT_SORT_DIRECTION = SortDirections.asc;
+const DEFAULT_SORT_DIRECTION = SortDirections.desc;
 
 export function paginationAndSortingValidation<T extends string>(
   sortFieldsEnum: Record<string, T>,
@@ -22,12 +22,12 @@ export function paginationAndSortingValidation<T extends string>(
       .isInt({ min: 1, max: 100 })
       .withMessage('Page size must be between 1 and 100')
       .toInt(),
-    //
-    // query('sortBy')
-    //   .optional()
-    //   .default(Object.values(sortFieldsEnum)[0])
-    //   .isIn(Object.values(sortFieldsEnum))
-    //   .withMessage(`Allowed sort fields: ${Object.values(sortFieldsEnum).join(', ')}`),
+
+    query('sortBy')
+      .optional()
+      .default(Object.values(sortFieldsEnum)[0])
+      .isIn(Object.values(sortFieldsEnum))
+      .withMessage(`Allowed sort fields: ${Object.values(sortFieldsEnum).join(', ')}`),
 
     query('sortDirection')
       .optional()
