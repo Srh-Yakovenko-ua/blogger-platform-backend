@@ -21,16 +21,18 @@ export const blogService = {
     else return null;
   },
 
-  async createBlog(data: BlogType): Promise<InsertOneResult<BlogType>> {
+  async createBlog(data: BlogType): Promise<string> {
     const dataWithTimestamp = {
       ...data,
       isMembership: false,
       createdAt: new Date().toISOString(),
     };
-    return await blogsRepository.createBlog(dataWithTimestamp);
+    const newBlog = await blogsRepository.createBlog(dataWithTimestamp);
+
+    return newBlog.insertedId.toString();
   },
 
-  async updateBlog(data: BlogType, blogID: string): Promise<boolean> {
+  async updateBlog(data: Partial<BlogType>, blogID: string): Promise<boolean> {
     return await blogsRepository.updateBlog(data, blogID);
   },
 

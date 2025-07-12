@@ -39,6 +39,6 @@ export const postService = {
   },
 
   async deletePost(postID: string): Promise<boolean> {
-    return postRepository.deletePost(postID);
+    return await postRepository.deletePost(postID);
   },
 };

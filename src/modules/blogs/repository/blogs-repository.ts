@@ -35,7 +35,7 @@ export const blogsRepository = {
     return await blogsCollections.insertOne(data);
   },
 
-  async updateBlog(data: BlogType, blogID: string): Promise<boolean> {
+  async updateBlog(data: Partial<BlogType>, blogID: string): Promise<boolean> {
     const updateBlogResult = await blogsCollections.updateOne(
       { _id: new ObjectId(blogID) },
       { $set: { ...data } },

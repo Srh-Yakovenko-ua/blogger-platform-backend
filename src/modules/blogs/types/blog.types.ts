@@ -1,3 +1,5 @@
+import { PaginationMetaType } from '../../../shared/types/pagination-meta-type';
+
 export type BlogType = {
   id: string;
   name: string;
@@ -6,3 +8,7 @@ export type BlogType = {
   createdAt: string;
   isMembership: boolean;
 };
+
+export type OutputBlogsType = {
+  items: BlogType[];
+} & PaginationMetaType;

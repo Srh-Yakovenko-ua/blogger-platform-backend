@@ -10,13 +10,13 @@ import { idValidation } from '../dto/validation-blog-fields';
 import { blogService } from '../service/blog.service';
 
 import { setFiltersQueryForBlogs } from '../utils/set-filters-query-for-blogs';
-import { outputBlogListsWithMetaData } from '../utils/output-blog-lists-with-meta-data';
 import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
 import { blogIdValidation, createPostForBlogDto } from '../dto/create-post-for-blog-dto';
 import { postService } from '../../posts/service/post.service';
 import { PostType } from '../../posts/types/post-types';
 import { setFiltersQueryForPosts } from '../../posts/utils/set-filters-query-for-posts';
 import { outputPostData } from '../../posts/utils/output-post-data';
+import { blogQueryService } from '../service/blog-query-service';
 
 export const blogRouters = Router({});
 
@@ -25,18 +25,9 @@ blogRouters.get(
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
     const filtersQuery = setFiltersQueryForBlogs(req.query);
-    console.log(filtersQuery);
-    console.log(filtersQuery, 'filtersQuery');
-    const { blogs, total } = await blogService.getBlogs(filtersQuery);
+    const blogs = await blogQueryService.getBlogs(filtersQuery);
 
-    const outputData = outputBlogListsWithMetaData(blogs, {
-      totalCount: total,
-      pagesCount: Math.ceil(total / filtersQuery.pageSize) || 1,
-      page: filtersQuery.pageNumber,
-      pageSize: filtersQuery.pageSize,
-    });
-
-    res.status(HttpStatuses.Ok).send(outputData);
+    res.status(HttpStatuses.Ok).send(blogs);
   },
 );
 
@@ -47,7 +38,7 @@ blogRouters.get(
   async (req: Request<{ id: string }>, res: Response) => {
     const blogID = req.params.id;
 
-    const findBlog = await blogService.getBlogById(blogID);
+    const findBlog = await blogQueryService.getBlogByID(blogID);
     if (findBlog) {
       res.status(HttpStatuses.Ok).send(findBlog);
     } else {
@@ -61,7 +52,6 @@ blogRouters.get(
 blogRouters.get(
   '/:blogId/posts',
   blogIdValidation,
-  // paginationAndSortingValidation(SortBy),
   throwValidationErrorsDTO,
   async (req: Request<{ blogId: string }, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
     const blogId = req.params.blogId;
@@ -92,7 +82,7 @@ blogRouters.post(
   async (req: Request<{ blogId: string }, {}, PostType, {}>, res: Response) => {
     const blogId = req.params.blogId;
     const postInsert = await postService.createPost(req.body);
-    const blog = await blogService.getBlogById(blogId);
+    const blog = await blogQueryService.getBlogByID(blogId);
     if (!blog) {
       res
         .status(HttpStatuses.NotFound)
@@ -130,9 +120,16 @@ blogRouters.post(
   createBlogDTO,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, BlogType>, res: Response) => {
-    const newBlog = await blogService.createBlog(req.body);
-    if (newBlog) {
-      const blog = await blogService.getBlogById(newBlog.insertedId.toString());
+    const newBlogID = await blogService.createBlog(req.body);
+    if (newBlogID) {
+      const blog = await blogQueryService.getBlogByID(newBlogID);
+      if (!blog) {
+        res
+          .status(HttpStatuses.NotFound)
+          .send(createError([{ field: 'id', message: 'Blog not found' }]));
+        return;
+      }
+
       res.status(HttpStatuses.Created).send(blog);
     } else {
       res
@@ -148,9 +145,9 @@ blogRouters.put(
   updateBlogDto,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }, {}, BlogType>, res: Response) => {
-    const isUpdateVideo = await blogService.updateBlog(req.body, req.params.id);
+    const isUpdateBlog = await blogService.updateBlog(req.body, req.params.id);
 
-    if (isUpdateVideo) {
+    if (isUpdateBlog) {
       res.sendStatus(HttpStatuses.NoContent);
     } else {
       res

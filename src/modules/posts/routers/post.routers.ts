@@ -12,8 +12,8 @@ import { PaginationQueryType } from '../../../shared/types/pagination-query-type
 
 import { outputPostListsWithMetaData } from '../utils/output-post-lists-with-meta-data';
 import { setFiltersQueryForPosts } from '../utils/set-filters-query-for-posts';
-import { blogsRepository } from '../../blogs/repository/blogs-repository';
-import { outputBlogData } from '../../blogs/utils/output-blog-data';
+
+import { blogService } from '../../blogs/service/blog.service';
 
 export const postRouters = Router({});
 
@@ -43,14 +43,14 @@ postRouters.post(
   createPostDto,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, PostType>, res: Response) => {
-    const getBlog = await blogsRepository.getBlogById(req.body.blogId);
-    if (!getBlog) {
+    const blog = await blogService.getBlogById(req.body.blogId);
+    if (!blog) {
       res
         .status(HttpStatuses.NotFound)
         .send(createError([{ field: 'id', message: 'Blog not found' }]));
       return;
     }
-    const blog = outputBlogData(getBlog);
+
     const dataWithTimestamp = {
       ...req.body,
       blogName: blog.name,
