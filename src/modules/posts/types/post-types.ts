@@ -1,3 +1,5 @@
+import { PaginationMetaType } from '../../../shared/types/pagination-meta-type';
+
 export type PostType = {
   id: string;
   title: string;
@@ -7,3 +9,7 @@ export type PostType = {
   blogName: string;
   createdAt: string;
 };
+
+export type OutputPostsType = {
+  items: PostType[];
+} & PaginationMetaType;

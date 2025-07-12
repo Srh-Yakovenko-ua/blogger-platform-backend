@@ -15,8 +15,8 @@ import { blogIdValidation, createPostForBlogDto } from '../dto/create-post-for-b
 import { postService } from '../../posts/service/post.service';
 import { PostType } from '../../posts/types/post-types';
 import { setFiltersQueryForPosts } from '../../posts/utils/set-filters-query-for-posts';
-import { outputPostData } from '../../posts/utils/output-post-data';
 import { blogQueryService } from '../service/blog-query-service';
+import { postQueryService } from '../../posts/service/post-query-service';
 
 export const blogRouters = Router({});
 
@@ -57,15 +57,10 @@ blogRouters.get(
     const blogId = req.params.blogId;
     const filters = setFiltersQueryForPosts(req.query);
 
-    const { posts, totalCountPosts } = await postService.getPostByBlogId(blogId, filters);
-    if (posts.length) {
-      res.send({
-        items: posts.map(outputPostData),
-        totalCount: totalCountPosts,
-        pagesCount: Math.ceil(totalCountPosts / filters.pageSize) || 1,
-        page: filters.pageNumber,
-        pageSize: filters.pageSize,
-      });
+    const blog = await blogQueryService.getBlogByID(blogId);
+    const postsByBlogId = await postQueryService.getPostByBlogId(blogId, filters);
+    if (blog) {
+      res.status(HttpStatuses.Ok).send(postsByBlogId);
     } else {
       res
         .status(HttpStatuses.NotFound)
@@ -81,7 +76,7 @@ blogRouters.post(
   throwValidationErrorsDTO,
   async (req: Request<{ blogId: string }, {}, PostType, {}>, res: Response) => {
     const blogId = req.params.blogId;
-    const postInsert = await postService.createPost(req.body);
+    const newPostID = await postService.createPost(req.body);
     const blog = await blogQueryService.getBlogByID(blogId);
     if (!blog) {
       res
@@ -89,24 +84,21 @@ blogRouters.post(
         .send(createError([{ field: 'id', message: 'Blog not found' }]));
       return;
     }
-    const post = postInsert
-      ? await postService.getPostById(postInsert.insertedId.toString())
-      : null;
-    if (post && blog) {
+
+    try {
       const isUpdate = await postService.updatePost(
         {
-          ...post,
           blogId: blog.id,
           blogName: blog.name,
           createdAt: new Date().toISOString(),
         },
-        post.id,
+        newPostID,
       );
       if (isUpdate) {
-        const newPost = await postService.getPostById(post?.id);
+        const newPost = await postQueryService.getPostById(newPostID);
         res.status(HttpStatuses.Created).send(newPost);
       }
-    } else {
+    } catch (e) {
       res
         .status(HttpStatuses.NotFound)
         .send(createError([{ field: '', message: 'Something Went Wrong' }]));

@@ -10,10 +10,10 @@ import { idValidation } from '../dto/validation-post-fields';
 import { postService } from '../service/post.service';
 import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
 
-import { outputPostListsWithMetaData } from '../utils/output-post-lists-with-meta-data';
 import { setFiltersQueryForPosts } from '../utils/set-filters-query-for-posts';
 
-import { blogService } from '../../blogs/service/blog.service';
+import { blogQueryService } from '../../blogs/service/blog-query-service';
+import { postQueryService } from '../service/post-query-service';
 
 export const postRouters = Router({});
 
@@ -23,17 +23,9 @@ postRouters.get(
   async (req: Request<{}, {}, {}, Partial<PaginationQueryType>>, res: Response) => {
     const filtersQuery = setFiltersQueryForPosts(req.query);
 
-    console.log(filtersQuery);
-    const { posts, total } = await postService.getPosts(filtersQuery);
+    const posts = await postQueryService.getPosts(filtersQuery);
 
-    const outputData = outputPostListsWithMetaData(posts, {
-      totalCount: total,
-      pagesCount: Math.ceil(total / filtersQuery.pageSize) || 1,
-      page: filtersQuery.pageNumber,
-      pageSize: filtersQuery.pageSize,
-    });
-
-    res.status(HttpStatuses.Ok).send(outputData);
+    res.status(HttpStatuses.Ok).send(posts);
   },
 );
 
@@ -43,7 +35,7 @@ postRouters.post(
   createPostDto,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, PostType>, res: Response) => {
-    const blog = await blogService.getBlogById(req.body.blogId);
+    const blog = await blogQueryService.getBlogByID(req.body.blogId);
     if (!blog) {
       res
         .status(HttpStatuses.NotFound)
@@ -51,16 +43,16 @@ postRouters.post(
       return;
     }
 
-    const dataWithTimestamp = {
+    const payloadData = {
       ...req.body,
       blogName: blog.name,
       blogId: blog.id,
       createdAt: new Date().toISOString(),
     };
 
-    const newPostInsert = await postService.createPost(dataWithTimestamp);
-    if (newPostInsert) {
-      const post = await postService.getPostById(newPostInsert.insertedId.toString());
+    const newPostID = await postService.createPost(payloadData);
+    if (newPostID) {
+      const post = await postQueryService.getPostById(newPostID);
       res.status(HttpStatuses.Created).send(post);
     } else {
       res
@@ -75,7 +67,7 @@ postRouters.get(
   idValidation,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }>, res: Response) => {
-    const findPost = await postService.getPostById(req.params.id);
+    const findPost = await postQueryService.getPostById(req.params.id);
 
     if (findPost) {
       res.status(HttpStatuses.Ok).send(findPost);
