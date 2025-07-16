@@ -4,7 +4,7 @@ import { OutputPostsType, PostType } from '../types/post-types';
 import { outputPostListsWithMetaData } from '../utils/output-post-lists-with-meta-data';
 import { Nullable } from '../../../shared/types/nullable';
 import { outputPostData } from '../utils/output-post-data';
-import { WithId } from 'mongodb';
+
 import { postQueryRepository } from '../repository/post-query-repository';
 
 export const postQueryService = {
