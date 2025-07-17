@@ -38,8 +38,9 @@ userRouters.post(
   async (req: Request<{}, {}, CreateUserDTO, {}>, res: Response) => {
     try {
       const newUserID = await userService.createUser(req.body);
+      const findUser = await userQueryService.getUserByID(newUserID);
 
-      res.status(HttpStatuses.Created).send({ id: newUserID });
+      res.status(HttpStatuses.Created).send(findUser);
     } catch (err) {
       const errField = err;
       res
