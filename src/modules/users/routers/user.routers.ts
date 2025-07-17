@@ -11,7 +11,6 @@ import { PaginationQueryType } from '../../../shared/types/pagination-query-type
 import { userQueryService } from '../service/user-query.service';
 import { authGuardMiddleware } from '../../auth/middlewares/auth-guard-middleware';
 import { setFiltersForUsers } from '../utils/set-filters-for-users';
-import { blogQueryService } from '../../blogs/service/blog-query-service';
 
 export const userRouters = Router({});
 
@@ -40,7 +39,7 @@ userRouters.post(
     try {
       const newUserID = await userService.createUser(req.body);
 
-      res.send({ id: newUserID }).status(HttpStatuses.Created);
+      res.status(HttpStatuses.Created).send({ id: newUserID });
     } catch (err) {
       const errField = err;
       res
