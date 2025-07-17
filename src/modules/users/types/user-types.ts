@@ -13,3 +13,8 @@ export type UserDBType = {
   createdAt: string;
   passwordHash: string;
 };
+
+export type UserPaginationSearchesType = {
+  searchLoginTerm: string | null;
+  searchEmailTerm: string | null;
+};

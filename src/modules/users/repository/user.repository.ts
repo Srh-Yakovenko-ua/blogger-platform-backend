@@ -1,5 +1,5 @@
 import { usersCollections } from '../../../setup/setup-mongo-db';
-import { InsertOneResult, WithId } from 'mongodb';
+import { InsertOneResult, ObjectId, WithId } from 'mongodb';
 import { UserDBType } from '../types/user-types';
 
 export const userRepository = {
@@ -11,5 +11,11 @@ export const userRepository = {
       { $or: [{ login }, { email }] },
       { projection: { login: 1, email: 1 } },
     );
+  },
+
+  async deleteUser(userID: string) {
+    const mongoObjectID = new ObjectId(userID);
+    const removeUserResult = await usersCollections.deleteOne({ _id: mongoObjectID });
+    return removeUserResult.deletedCount >= 1;
   },
 };
