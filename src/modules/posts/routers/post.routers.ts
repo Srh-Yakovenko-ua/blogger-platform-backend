@@ -14,6 +14,8 @@ import { setFiltersQueryForPosts } from '../utils/set-filters-query-for-posts';
 
 import { blogQueryService } from '../../blogs/service/blog-query-service';
 import { postQueryService } from '../service/post-query-service';
+import { createPostWithCommentDto } from '../dto/create-post-with-comment-dto';
+import { asyncWrapProviders } from 'node:async_hooks';
 
 export const postRouters = Router({});
 
@@ -26,6 +28,24 @@ postRouters.get(
     const posts = await postQueryService.getPosts(filtersQuery);
 
     res.status(HttpStatuses.Ok).send(posts);
+  },
+);
+
+postRouters.post(
+  '/:id/comments',
+  authGuardMiddleware,
+  createPostWithCommentDto,
+  throwValidationErrorsDTO,
+  async (req: Request<{ postId: string }, {}, { content: string }, {}>, res: Response) => {
+    try {
+      const postComment = await postService.createPostComment({
+        postId: req.params.postId,
+        userId: req.user?.id as string,
+        content: req.body.content,
+      });
+    } catch (err) {
+      res.status(HttpStatuses.NotFound).send(createError([{ field: '', message: `${err}` }]));
+    }
   },
 );
 

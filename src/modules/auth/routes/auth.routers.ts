@@ -4,6 +4,9 @@ import { throwValidationErrorsDTO } from '../../../shared/dto/throw-validation-e
 import { authService } from '../service/auth.service';
 import { HttpStatuses } from '../../../shared/enums/http-statuses';
 import { createError } from '../../../shared/utils/create-error';
+import { authGuardMiddleware } from '../middlewares/auth-guard-middleware';
+import { userQueryRepository } from '../../users/repository/user-query.repository';
+import { userQueryService } from '../../users/service/user-query.service';
 
 export const authRouters = Router({});
 
@@ -13,10 +16,10 @@ authRouters.post(
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, { loginOrEmail: string; password: string }, {}>, res: Response) => {
     try {
-      const isLogin = await authService.loginUser(req.body);
+      const accessToken = await authService.loginUser(req.body);
 
-      if (isLogin) {
-        res.sendStatus(HttpStatuses.NoContent);
+      if (accessToken) {
+        res.status(HttpStatuses.Ok).send({ accessToken });
       } else {
         res
           .status(HttpStatuses.Unauthorized)
@@ -32,5 +35,18 @@ authRouters.post(
         ]),
       );
     }
+  },
+);
+
+authRouters.get(
+  '/me',
+  authGuardMiddleware,
+  throwValidationErrorsDTO,
+  async (req: Request, res: Response) => {
+    const userID = req.user?.id as string;
+
+    const findMe = await userQueryService.getUserByID(userID);
+    if (!findMe) res.sendStatus(HttpStatuses.Unauthorized);
+    res.status(HttpStatuses.Ok).send(findMe);
   },
 );

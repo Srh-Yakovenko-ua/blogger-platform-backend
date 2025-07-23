@@ -13,3 +13,19 @@ export type PostType = {
 export type OutputPostsType = {
   items: PostType[];
 } & PaginationMetaType;
+
+export type InputViewModelPostComment = {
+  id: string;
+  content: string;
+  commentatorInfo: {
+    userId: string;
+    userLogin: string;
+  };
+  createdAt: string;
+};
+
+export type CreatePostCommentDTO = {
+  content: string;
+  postId: string;
+  userId: string;
+};

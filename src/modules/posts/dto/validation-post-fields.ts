@@ -7,6 +7,18 @@ export const idValidation = param('id')
   .withMessage('ID must be a string')
   .isMongoId()
   .withMessage('Incorrect format of ObjectId');
+
+export const postContentForCommentsValidation = body('content')
+  .exists()
+  .withMessage('Content is required')
+  .trim()
+  .notEmpty()
+  .withMessage('Content cannot be empty')
+  .isString()
+  .withMessage('Content must be a string')
+  .isLength({ min: 20, max: 300 })
+  .withMessage('Content must be at most 300 characters');
+
 export const postTitleValidation = body('title')
   .exists()
   .withMessage('Title is required')
