@@ -70,7 +70,7 @@ userRouters.get(
 
 userRouters.delete(
   '/:id',
-  authGuardMiddleware,
+  baseAuthGuardMiddleware,
   mongoIdValidation,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }>, res: Response) => {
