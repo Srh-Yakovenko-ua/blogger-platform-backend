@@ -20,6 +20,7 @@ import { commentsService } from '../../comments/service/comments-service';
 import { commentsQueryRepository } from '../../comments/repository/comments-query-repository';
 import { commentsQueryService } from '../../comments/service/comments-query-service';
 import { postQueryRepository } from '../repository/post-query-repository';
+import { baseAuthGuardMiddleware } from '../../auth/middlewares/base-auth-guard';
 
 export const postRouters = Router({});
 
@@ -88,7 +89,7 @@ postRouters.post(
 
 postRouters.post(
   '',
-  authGuardMiddleware,
+  baseAuthGuardMiddleware,
   createPostDto,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, PostType>, res: Response) => {
@@ -138,7 +139,7 @@ postRouters.get(
 
 postRouters.put(
   '/:id',
-  authGuardMiddleware,
+  baseAuthGuardMiddleware,
   updatePostDto,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }, {}, PostType>, res: Response) => {
@@ -155,9 +156,9 @@ postRouters.put(
 
 postRouters.delete(
   '/:id',
+  baseAuthGuardMiddleware,
   idValidation,
   throwValidationErrorsDTO,
-  authGuardMiddleware,
   async (req: Request, res: Response) => {
     const isDelete = await postService.deletePost(req.params.id);
 

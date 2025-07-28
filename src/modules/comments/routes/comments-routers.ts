@@ -7,7 +7,6 @@ import { authGuardMiddleware } from '../../auth/middlewares/auth-guard-middlewar
 import { throwValidationErrorsDTO } from '../../../shared/dto/throw-validation-errors-dto';
 import { commentIdValidation } from '../dto/comments-validation-fields';
 import { updateValidationDto } from '../dto/update-validation-dto';
-import { commentsQueryRepository } from '../repository/comments-query-repository';
 
 export const commentsRouters = Router({});
 

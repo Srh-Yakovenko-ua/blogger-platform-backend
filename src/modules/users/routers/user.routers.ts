@@ -32,8 +32,8 @@ userRouters.get(
 
 userRouters.post(
   '/',
-  inputUserDto,
   authGuardMiddleware,
+  inputUserDto,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, CreateUserDTO, {}>, res: Response) => {
     try {

@@ -17,6 +17,7 @@ import { PostType } from '../../posts/types/post-types';
 import { setFiltersQueryForPosts } from '../../posts/utils/set-filters-query-for-posts';
 import { blogQueryService } from '../service/blog-query-service';
 import { postQueryService } from '../../posts/service/post-query-service';
+import { baseAuthGuardMiddleware } from '../../auth/middlewares/base-auth-guard';
 
 export const blogRouters = Router({});
 
@@ -71,7 +72,7 @@ blogRouters.get(
 
 blogRouters.post(
   '/:blogId/posts',
-  authGuardMiddleware,
+  baseAuthGuardMiddleware,
   createPostForBlogDto,
   throwValidationErrorsDTO,
   async (req: Request<{ blogId: string }, {}, PostType, {}>, res: Response) => {
@@ -108,7 +109,7 @@ blogRouters.post(
 
 blogRouters.post(
   '',
-  authGuardMiddleware,
+  baseAuthGuardMiddleware,
   createBlogDTO,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, BlogType>, res: Response) => {
@@ -133,7 +134,7 @@ blogRouters.post(
 
 blogRouters.put(
   '/:id',
-  authGuardMiddleware,
+  baseAuthGuardMiddleware,
   updateBlogDto,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }, {}, BlogType>, res: Response) => {
@@ -151,9 +152,9 @@ blogRouters.put(
 
 blogRouters.delete(
   '/:id',
+  baseAuthGuardMiddleware,
   idValidation,
   throwValidationErrorsDTO,
-  authGuardMiddleware,
   async (req: Request<{ id: string }>, res: Response) => {
     const isDelete = await blogService.deleteBlog(req.params.id);
 
