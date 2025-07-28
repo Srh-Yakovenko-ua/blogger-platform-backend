@@ -8,7 +8,6 @@ export type PostType = {
   blogId: string;
   blogName: string;
   createdAt: string;
-  commentId: string;
 };
 
 export type OutputPostsType = {
