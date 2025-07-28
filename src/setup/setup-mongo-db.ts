@@ -2,10 +2,12 @@ import { Collection, Db, MongoClient, ServerApiVersion } from 'mongodb';
 import { PostType } from '../modules/posts/types/post-types';
 import { BlogType } from '../modules/blogs/types/blog.types';
 import { UserDBType, UserType } from '../modules/users/types/user-types';
+import { CommentDBType } from '../modules/comments/types';
 
 export let postsCollections: Collection<PostType>;
 export let blogsCollections: Collection<BlogType>;
 export let usersCollections: Collection<UserDBType>;
+export let commentsCollections: Collection<CommentDBType>;
 export async function runDB(url: string): Promise<void> {
   const client = new MongoClient(url, {
     serverApi: {
@@ -18,6 +20,7 @@ export async function runDB(url: string): Promise<void> {
   blogsCollections = db.collection<BlogType>('blogs');
   postsCollections = db.collection<PostType>('posts');
   usersCollections = db.collection<UserDBType>('users');
+  commentsCollections = db.collection<any>('comments');
   try {
     await client.connect();
     await db.command({ ping: 1 });

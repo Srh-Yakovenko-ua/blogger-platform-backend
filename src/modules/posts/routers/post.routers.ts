@@ -16,6 +16,10 @@ import { blogQueryService } from '../../blogs/service/blog-query-service';
 import { postQueryService } from '../service/post-query-service';
 import { createPostWithCommentDto } from '../dto/create-post-with-comment-dto';
 import { asyncWrapProviders } from 'node:async_hooks';
+import { commentsService } from '../../comments/service/comments-service';
+import { commentsQueryRepository } from '../../comments/repository/comments-query-repository';
+import { commentsQueryService } from '../../comments/service/comments-query-service';
+import { postQueryRepository } from '../repository/post-query-repository';
 
 export const postRouters = Router({});
 
@@ -31,18 +35,51 @@ postRouters.get(
   },
 );
 
+postRouters.get(
+  '/:id/comments',
+  idValidation,
+  throwValidationErrorsDTO,
+  async (req: Request<{ id: string }>, res: Response) => {
+    const filtersQuery = setFiltersQueryForPosts(req.query);
+
+    const findPost = await postQueryRepository.getPostById(req.params.id);
+
+    if (findPost) {
+      const comments = await commentsQueryService.getCommentsByPostID({
+        filter: filtersQuery,
+        postID: req.params.id,
+      });
+      res.status(HttpStatuses.Ok).send(comments);
+    } else {
+      res.status(HttpStatuses.NotFound).send(
+        createError([
+          {
+            field: 'postId',
+            message: 'Post Not Found',
+          },
+        ]),
+      );
+    }
+  },
+);
+
 postRouters.post(
   '/:id/comments',
   authGuardMiddleware,
   createPostWithCommentDto,
   throwValidationErrorsDTO,
-  async (req: Request<{ postId: string }, {}, { content: string }, {}>, res: Response) => {
+  async (req: Request<{ id: string }, {}, { content: string }, {}>, res: Response) => {
     try {
-      const postComment = await postService.createPostComment({
-        postId: req.params.postId,
-        userId: req.user?.id as string,
-        content: req.body.content,
-      });
+      const newCommentID = await commentsService.createComments(
+        {
+          content: req.body.content,
+          postId: req.params.id,
+        },
+        req.user?.id!,
+      );
+      const comment = await commentsQueryService.getCommentByID(newCommentID);
+
+      res.status(HttpStatuses.Created).send(comment);
     } catch (err) {
       res.status(HttpStatuses.NotFound).send(createError([{ field: '', message: `${err}` }]));
     }

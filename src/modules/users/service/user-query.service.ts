@@ -15,7 +15,7 @@ export const userQueryService = {
     return await userQueryRepository.getUserByLoginOrEmail(loginOrEmail);
   },
 
-  async getUsers(filters: PaginationQueryType & UserPaginationSearchesType): Promise<any> {
+  async getUsers(filters: PaginationQueryType & UserPaginationSearchesType) {
     const { users, totalCount } = await userQueryRepository.getUsers(filters);
 
     const mapToOutputUsersLists = (findUsers: WithId<UserDBType>[], totalCount: number) => {
