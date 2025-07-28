@@ -7,6 +7,7 @@ import { authGuardMiddleware } from '../../auth/middlewares/auth-guard-middlewar
 import { throwValidationErrorsDTO } from '../../../shared/dto/throw-validation-errors-dto';
 import { commentIdValidation } from '../dto/comments-validation-fields';
 import { updateValidationDto } from '../dto/update-validation-dto';
+import { commentsQueryRepository } from '../repository/comments-query-repository';
 
 export const commentsRouters = Router({});
 
@@ -38,6 +39,14 @@ commentsRouters.put(
   updateValidationDto,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }, {}, { content: string }>, res: Response) => {
+    const findComment = await commentsQueryService.getCommentByID(req.params.id);
+
+    const isOwnUserComment = findComment?.commentatorInfo.userId === req.user?.id;
+    if (!isOwnUserComment) {
+      res.sendStatus(HttpStatuses.Forbidden);
+      return;
+    }
+
     const isUpdate = await commentsService.updateComment({
       commentId: req.params.id,
       content: req.body.content,
@@ -59,9 +68,18 @@ commentsRouters.put(
 
 commentsRouters.delete(
   '/:id',
+  authGuardMiddleware,
   commentIdValidation,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }>, res: Response) => {
+    const findComment = await commentsQueryService.getCommentByID(req.params.id);
+
+    const isOwnUserComment = findComment?.commentatorInfo.userId === req.user?.id;
+    if (!isOwnUserComment) {
+      res.sendStatus(HttpStatuses.Forbidden);
+      return;
+    }
+
     const isDelete = await commentsService.removeCommentById(req.params.id);
     if (isDelete) {
       res.sendStatus(HttpStatuses.NoContent);
