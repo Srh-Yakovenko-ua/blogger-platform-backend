@@ -11,12 +11,13 @@ import { PaginationQueryType } from '../../../shared/types/pagination-query-type
 import { userQueryService } from '../service/user-query.service';
 import { authGuardMiddleware } from '../../auth/middlewares/auth-guard-middleware';
 import { setFiltersForUsers } from '../utils/set-filters-for-users';
+import { baseAuthGuardMiddleware } from '../../auth/middlewares/base-auth-guard';
 
 export const userRouters = Router({});
 
 userRouters.get(
   '/',
-  authGuardMiddleware,
+  baseAuthGuardMiddleware,
   throwValidationErrorsDTO,
   async (
     req: Request<{}, {}, {}, Partial<PaginationQueryType & UserPaginationSearchesType>>,
@@ -32,7 +33,7 @@ userRouters.get(
 
 userRouters.post(
   '/',
-  authGuardMiddleware,
+  baseAuthGuardMiddleware,
   inputUserDto,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, CreateUserDTO, {}>, res: Response) => {
@@ -52,7 +53,7 @@ userRouters.post(
 
 userRouters.get(
   '/:id',
-  authGuardMiddleware,
+  baseAuthGuardMiddleware,
   mongoIdValidation,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }>, res: Response) => {
