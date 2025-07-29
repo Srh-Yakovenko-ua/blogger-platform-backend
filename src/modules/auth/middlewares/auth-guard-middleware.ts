@@ -8,6 +8,10 @@ type PayloadAccessTokenType = {
   iat: number;
   exp: number;
 };
+function isValidJwtFormat(token: string): boolean {
+  const parts = token.split('.');
+  return parts.length === 3 && parts.every((p) => /^[A-Za-z0-9-_]+$/.test(p));
+}
 export const authGuardMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const auth = req.headers['authorization'] as string;
 
@@ -21,8 +25,10 @@ export const authGuardMiddleware = async (req: Request, res: Response, next: Nex
 
   const [authType, token] = auth.split(' ');
   if (authType !== 'Bearer') return unauthorized();
+  if (!isValidJwtFormat(token)) return unauthorized();
 
   const payload: any = await jwtService.verifyToken(token);
+  console.log(payload);
   if (!payload) return unauthorized();
 
   req.user = { id: payload.userId };
