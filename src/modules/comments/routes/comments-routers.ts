@@ -71,13 +71,24 @@ commentsRouters.delete(
   commentIdValidation,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }>, res: Response) => {
-    // const findComment = await commentsQueryService.getCommentByID(req.params.id);
-    //
-    // const isOwnUserComment = findComment?.commentatorInfo.userId === req.user?.id;
-    // if (!isOwnUserComment) {
-    //   res.sendStatus(HttpStatuses.Forbidden);
-    //   return;
-    // }
+    const findComment = await commentsQueryService.getCommentByID(req.params.id);
+    if (!findComment) {
+      res.status(HttpStatuses.NotFound).send(
+        createError([
+          {
+            field: 'commentId',
+            message: 'Comment not Found',
+          },
+        ]),
+      );
+      return;
+    }
+
+    const isOwnUserComment = findComment?.commentatorInfo.userId === req.user?.id;
+    if (!isOwnUserComment) {
+      res.sendStatus(HttpStatuses.Forbidden);
+      return;
+    }
 
     const isDelete = await commentsService.removeCommentById(req.params.id);
     if (isDelete) {
@@ -86,8 +97,8 @@ commentsRouters.delete(
       res.status(HttpStatuses.NotFound).send(
         createError([
           {
-            field: 'commentId',
-            message: 'Comment not Found',
+            field: '',
+            message: 'Something Went Wrong',
           },
         ]),
       );
