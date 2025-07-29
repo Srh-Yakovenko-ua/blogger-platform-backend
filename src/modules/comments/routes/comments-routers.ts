@@ -50,7 +50,7 @@ commentsRouters.put(
       );
       return;
     }
-    const isOwnUserComment = findComment?.commentatorInfo.userId === req.user?.id;
+    const isOwnUserComment = findComment.commentatorInfo.userId === req.user?.id;
     if (!isOwnUserComment) {
       res.sendStatus(HttpStatuses.Forbidden);
       return;

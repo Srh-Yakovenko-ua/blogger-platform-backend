@@ -70,11 +70,24 @@ postRouters.post(
   createPostWithCommentDto,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }, {}, { content: string }, {}>, res: Response) => {
+    const findPost = await postQueryService.getPostById(req.params.id);
+    if (!findPost) {
+      res.status(HttpStatuses.NotFound).send(
+        createError([
+          {
+            field: 'postId',
+            message: 'Post Not Found',
+          },
+        ]),
+      );
+      return;
+    }
+
     try {
       const newCommentID = await commentsService.createComments(
         {
           content: req.body.content,
-          postId: req.params.id,
+          postId: findPost.id,
         },
         req.user?.id!,
       );
