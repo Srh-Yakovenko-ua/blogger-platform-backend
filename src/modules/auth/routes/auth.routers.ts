@@ -5,7 +5,6 @@ import { authService } from '../service/auth.service';
 import { HttpStatuses } from '../../../shared/enums/http-statuses';
 import { createError } from '../../../shared/utils/create-error';
 import { authGuardMiddleware } from '../middlewares/auth-guard-middleware';
-import { userQueryRepository } from '../../users/repository/user-query.repository';
 import { userQueryService } from '../../users/service/user-query.service';
 
 export const authRouters = Router({});

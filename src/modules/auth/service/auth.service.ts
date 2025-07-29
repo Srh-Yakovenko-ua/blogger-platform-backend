@@ -12,11 +12,11 @@ export const authService = {
       loginData.password,
       findUser.passwordHash,
     );
-    const accessToken = await jwtService.createToken(findUser._id.toString());
-    if (isMatchesUserPassword && accessToken) {
-      return accessToken;
-    } else {
-      return null;
+    if (!isMatchesUserPassword) {
+      throw 'If the password or login or email is wrong';
     }
+    const accessToken = await jwtService.createToken(findUser._id.toString());
+    if (accessToken) return accessToken;
+    else return null;
   },
 };
