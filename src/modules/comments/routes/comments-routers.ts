@@ -71,13 +71,13 @@ commentsRouters.delete(
   commentIdValidation,
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }>, res: Response) => {
-    const findComment = await commentsQueryService.getCommentByID(req.params.id);
-
-    const isOwnUserComment = findComment?.commentatorInfo.userId === req.user?.id;
-    if (!isOwnUserComment) {
-      res.sendStatus(HttpStatuses.Forbidden);
-      return;
-    }
+    // const findComment = await commentsQueryService.getCommentByID(req.params.id);
+    //
+    // const isOwnUserComment = findComment?.commentatorInfo.userId === req.user?.id;
+    // if (!isOwnUserComment) {
+    //   res.sendStatus(HttpStatuses.Forbidden);
+    //   return;
+    // }
 
     const isDelete = await commentsService.removeCommentById(req.params.id);
     if (isDelete) {
