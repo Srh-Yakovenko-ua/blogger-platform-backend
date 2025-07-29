@@ -39,7 +39,17 @@ commentsRouters.put(
   throwValidationErrorsDTO,
   async (req: Request<{ id: string }, {}, { content: string }>, res: Response) => {
     const findComment = await commentsQueryService.getCommentByID(req.params.id);
-
+    if (!findComment) {
+      res.status(HttpStatuses.NotFound).send(
+        createError([
+          {
+            field: 'commentId',
+            message: 'Comment not Found',
+          },
+        ]),
+      );
+      return;
+    }
     const isOwnUserComment = findComment?.commentatorInfo.userId === req.user?.id;
     if (!isOwnUserComment) {
       res.sendStatus(HttpStatuses.Forbidden);
@@ -56,8 +66,8 @@ commentsRouters.put(
       res.status(HttpStatuses.NotFound).send(
         createError([
           {
-            field: 'commentId',
-            message: 'Comment Not Found',
+            field: '',
+            message: 'Something Went Wrong',
           },
         ]),
       );
