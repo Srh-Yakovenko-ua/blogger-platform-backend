@@ -8,12 +8,22 @@ export const userQueryRepository = {
     const objectID = new ObjectId(userID);
     return usersCollections.findOne({ _id: objectID });
   },
+  async getUserByConfirmationCode(code: string) {
+    return usersCollections.findOne({ 'emailConfirmation.confirmationCode': code });
+  },
 
   async getUserByLoginOrEmail(loginOrEmail: string): Promise<WithId<UserDBType> | null> {
     return usersCollections.findOne({
       $or: [{ login: loginOrEmail }, { email: loginOrEmail }],
     });
   },
+  async userIsAlreadyExists({ email, login }: { login: string; email: string }): Promise<boolean> {
+    const user = await usersCollections.findOne({
+      $or: [{ login: login }, { email: email }],
+    });
+    return !!user;
+  },
+
   async getUsers(filters: PaginationQueryType & UserPaginationSearchesType): Promise<{
     users: WithId<UserDBType>[];
     totalCount: number;

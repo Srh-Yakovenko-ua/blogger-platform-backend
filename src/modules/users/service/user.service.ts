@@ -17,10 +17,15 @@ export const userService = {
       email: data.email,
       createdAt: createdAt,
       passwordHash: hash,
+      emailConfirmation: null,
     };
 
     const newUser = await userRepository.createUser(userToInsert);
     return newUser.insertedId.toString();
+  },
+
+  async updateUser(userId: string, updateData: Record<string, any>) {
+    return await userRepository.updateUser(userId, updateData);
   },
 
   async deleteUser(userID: string) {

@@ -18,4 +18,13 @@ export const userRepository = {
     const removeUserResult = await usersCollections.deleteOne({ _id: mongoObjectID });
     return removeUserResult.deletedCount >= 1;
   },
+
+  async updateUser(userId: string, updateData: Record<string, any>) {
+    const mongoObjectID = new ObjectId(userId);
+    const updatePostResult = await usersCollections.updateOne(
+      { _id: mongoObjectID },
+      { $set: updateData },
+    );
+    return updatePostResult.matchedCount >= 1;
+  },
 };

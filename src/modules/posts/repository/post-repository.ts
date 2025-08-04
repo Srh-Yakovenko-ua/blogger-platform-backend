@@ -1,7 +1,6 @@
 import { PostType } from '../types/post-types';
 import { postsCollections } from '../../../setup/setup-mongo-db';
-import { InsertOneResult, ObjectId, WithId } from 'mongodb';
-import { PaginationQueryType } from '../../../shared/types/pagination-query-type';
+import { InsertOneResult, ObjectId } from 'mongodb';
 
 export const postRepository = {
   async createPost(data: PostType): Promise<InsertOneResult<PostType>> {

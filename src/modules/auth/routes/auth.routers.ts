@@ -6,6 +6,9 @@ import { HttpStatuses } from '../../../shared/enums/http-statuses';
 import { createError } from '../../../shared/utils/create-error';
 import { authGuardMiddleware } from '../middlewares/auth-guard-middleware';
 import { userQueryService } from '../../users/service/user-query.service';
+import { registrationDto } from '../dto/registration-dto';
+import { userService } from '../../users/service/user.service';
+import { RegistrationCreateDto } from '../types/registration-create-dto';
 
 export const authRouters = Router({});
 
@@ -29,6 +32,49 @@ authRouters.post(
         createError([
           {
             field: 'loginOrEmail',
+            message: `${err}`,
+          },
+        ]),
+      );
+    }
+  },
+);
+
+authRouters.post(
+  '/registration',
+  registrationDto,
+  throwValidationErrorsDTO,
+  async (req: Request<{}, {}, RegistrationCreateDto, {}>, res: Response) => {
+    try {
+      const user = await authService.registrationUser(req.body);
+      res.status(HttpStatuses.Created).send(user);
+    } catch (err) {
+      res.status(HttpStatuses.Unauthorized).send(
+        createError([
+          {
+            field: 'loginOrEmail',
+            message: `${err}`,
+          },
+        ]),
+      );
+    }
+  },
+);
+authRouters.post(
+  '/registration-email-resending',
+  async (req: Request<{}, {}, {}, {}>, res: Response) => {},
+);
+authRouters.post(
+  '/registration-confirmation',
+  async (req: Request<{}, {}, { code: string }, {}>, res: Response) => {
+    try {
+      await authService.confirmationUser(req.body.code);
+      res.sendStatus(HttpStatuses.Created);
+    } catch (err) {
+      res.status(HttpStatuses.Unauthorized).send(
+        createError([
+          {
+            field: 'code',
             message: `${err}`,
           },
         ]),
