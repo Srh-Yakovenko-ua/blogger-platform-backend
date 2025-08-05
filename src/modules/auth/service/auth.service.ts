@@ -65,6 +65,25 @@ export const authService = {
     return newUser;
   },
 
+  async resendingEmailVerificationCode(email: string) {
+    const findUser = await userQueryRepository.getUserByLoginOrEmail(email);
+    if (!findUser) throw 'User not Found';
+
+    const newCode = randomUUID();
+    await userService.updateUser(findUser._id.toString(), {
+      'emailConfirmation.confirmationCode': newCode,
+    });
+
+    try {
+      await emailServices.sendConfirmationCode({
+        toEmail: email,
+        code: newCode,
+      });
+    } catch (err) {
+      console.error('Send email error', err);
+    }
+  },
+
   async confirmationUser(code: string) {
     async function isValidUUID(code: string): Promise<boolean> {
       const uuidPattern =

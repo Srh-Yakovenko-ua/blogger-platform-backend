@@ -9,6 +9,7 @@ import { userQueryService } from '../../users/service/user-query.service';
 import { registrationDto } from '../dto/registration-dto';
 import { userService } from '../../users/service/user.service';
 import { RegistrationCreateDto } from '../types/registration-create-dto';
+import { registrationEmailResendingDto } from '../types/registration-email-resending-dto';
 
 export const authRouters = Router({});
 
@@ -62,7 +63,23 @@ authRouters.post(
 );
 authRouters.post(
   '/registration-email-resending',
-  async (req: Request<{}, {}, {}, {}>, res: Response) => {},
+  registrationEmailResendingDto,
+  throwValidationErrorsDTO,
+  async (req: Request<{}, {}, { email: string }, {}>, res: Response) => {
+    try {
+      await authService.resendingEmailVerificationCode(req.body.email);
+      res.sendStatus(HttpStatuses.Created);
+    } catch (err) {
+      res.status(HttpStatuses.Unauthorized).send(
+        createError([
+          {
+            field: 'code',
+            message: `${err}`,
+          },
+        ]),
+      );
+    }
+  },
 );
 authRouters.post(
   '/registration-confirmation',
