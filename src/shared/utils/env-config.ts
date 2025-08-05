@@ -8,4 +8,8 @@ export const envConfig = {
   mailtrapUser: process.env.MAILTRAP_USER,
   mailtrapPass: process.env.MAILTRAP_PASS,
   mailtrapFromEmail: process.env.MAILTRAP_FROM_EMAIL,
+
+  gmailFrom: process.env.GMAIL_FROM,
+  gmailUser: process.env.GMAIL_USER,
+  gmailPass: process.env.GMAIL_APP_PASSWORD,
 };

@@ -13,18 +13,19 @@ const template = (code: string) => {
 };
 
 const transporter = nodemailer.createTransport({
-  host: envConfig.mailtrapHost,
-  port: envConfig.mailtrapPort,
+  // host: envConfig.mailtrapHost,
+  // port: envConfig.mailtrapPort,
+  service: 'gmail',
   auth: {
-    user: envConfig.mailtrapUser,
-    pass: envConfig.mailtrapPass,
+    user: envConfig.gmailUser,
+    pass: envConfig.gmailPass,
   },
-  from: envConfig.mailtrapFromEmail,
+  from: envConfig.gmailFrom,
 });
 export const emailServices = {
   async sendConfirmationCode({ toEmail, code }: { toEmail: string; code: string }) {
     await transporter.sendMail({
-      from: `"Bloger Platform" <${envConfig.mailtrapFromEmail}>`,
+      from: `"Bloger Platform" <${envConfig.gmailFrom}>`,
       to: toEmail,
       subject: 'Email confirmation',
       html: template(code),
