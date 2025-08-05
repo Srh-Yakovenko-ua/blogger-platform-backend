@@ -47,8 +47,8 @@ authRouters.post(
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, RegistrationCreateDto, {}>, res: Response) => {
     try {
-      const user = await authService.registrationUser(req.body);
-      res.status(HttpStatuses.Created).send(user);
+      await authService.registrationUser(req.body);
+      res.sendStatus(HttpStatuses.Created);
     } catch (err) {
       res.status(HttpStatuses.Unauthorized).send(
         createError([
