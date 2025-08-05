@@ -7,7 +7,7 @@ import { createError } from '../../../shared/utils/create-error';
 import { authGuardMiddleware } from '../middlewares/auth-guard-middleware';
 import { userQueryService } from '../../users/service/user-query.service';
 import { registrationDto } from '../dto/registration-dto';
-import { userService } from '../../users/service/user.service';
+
 import { RegistrationCreateDto } from '../types/registration-create-dto';
 import { registrationEmailResendingDto } from '../types/registration-email-resending-dto';
 
@@ -29,7 +29,7 @@ authRouters.post(
           .send(createError([{ field: 'loginOrEmail', message: 'Password or login is wrong' }]));
       }
     } catch (err) {
-      res.status(HttpStatuses.Unauthorized).send(
+      res.status(HttpStatuses.BadRequest).send(
         createError([
           {
             field: 'loginOrEmail',
@@ -50,7 +50,7 @@ authRouters.post(
       await authService.registrationUser(req.body);
       res.sendStatus(HttpStatuses.NoContent);
     } catch (err) {
-      res.status(HttpStatuses.Unauthorized).send(
+      res.status(HttpStatuses.BadRequest).send(
         createError([
           {
             field: 'loginOrEmail',
@@ -70,7 +70,7 @@ authRouters.post(
       await authService.resendingEmailVerificationCode(req.body.email);
       res.sendStatus(HttpStatuses.NoContent);
     } catch (err) {
-      res.status(HttpStatuses.Unauthorized).send(
+      res.status(HttpStatuses.BadRequest).send(
         createError([
           {
             field: 'code',
