@@ -32,8 +32,8 @@ authRouters.post(
       res.status(HttpStatuses.BadRequest).send(
         createError([
           {
-            field: 'loginOrEmail',
             message: `${err}`,
+            field: 'loginOrEmail',
           },
         ]),
       );
@@ -53,8 +53,8 @@ authRouters.post(
       res.status(HttpStatuses.BadRequest).send(
         createError([
           {
-            field: 'loginOrEmail',
             message: `${err}`,
+            field: 'email',
           },
         ]),
       );
@@ -73,8 +73,8 @@ authRouters.post(
       res.status(HttpStatuses.BadRequest).send(
         createError([
           {
-            field: 'code',
             message: `${err}`,
+            field: 'code',
           },
         ]),
       );
@@ -91,8 +91,8 @@ authRouters.post(
       res.status(HttpStatuses.Unauthorized).send(
         createError([
           {
-            field: 'code',
             message: `${err}`,
+            field: 'code',
           },
         ]),
       );
