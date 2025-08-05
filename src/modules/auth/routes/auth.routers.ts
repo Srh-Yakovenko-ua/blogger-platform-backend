@@ -48,7 +48,7 @@ authRouters.post(
   async (req: Request<{}, {}, RegistrationCreateDto, {}>, res: Response) => {
     try {
       await authService.registrationUser(req.body);
-      res.sendStatus(HttpStatuses.Created);
+      res.sendStatus(HttpStatuses.NoContent);
     } catch (err) {
       res.status(HttpStatuses.Unauthorized).send(
         createError([
@@ -68,7 +68,7 @@ authRouters.post(
   async (req: Request<{}, {}, { email: string }, {}>, res: Response) => {
     try {
       await authService.resendingEmailVerificationCode(req.body.email);
-      res.sendStatus(HttpStatuses.Created);
+      res.sendStatus(HttpStatuses.NoContent);
     } catch (err) {
       res.status(HttpStatuses.Unauthorized).send(
         createError([
@@ -86,7 +86,7 @@ authRouters.post(
   async (req: Request<{}, {}, { code: string }, {}>, res: Response) => {
     try {
       await authService.confirmationUser(req.body.code);
-      res.sendStatus(HttpStatuses.Created);
+      res.sendStatus(HttpStatuses.NoContent);
     } catch (err) {
       res.status(HttpStatuses.Unauthorized).send(
         createError([
