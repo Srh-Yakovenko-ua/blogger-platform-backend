@@ -53,8 +53,8 @@ authRouters.post(
       res.status(HttpStatuses.BadRequest).send(
         createError([
           {
-            message: `${err}`,
             field: 'email',
+            message: `${err}`,
           },
         ]),
       );
@@ -73,8 +73,8 @@ authRouters.post(
       res.status(HttpStatuses.BadRequest).send(
         createError([
           {
-            message: `${err}`,
             field: 'code',
+            message: `${err}`,
           },
         ]),
       );
@@ -91,8 +91,8 @@ authRouters.post(
       res.status(HttpStatuses.Unauthorized).send(
         createError([
           {
-            message: `${err}`,
             field: 'code',
+            message: `${err}`,
           },
         ]),
       );
