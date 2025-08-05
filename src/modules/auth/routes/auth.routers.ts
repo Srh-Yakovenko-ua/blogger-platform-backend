@@ -54,7 +54,7 @@ authRouters.post(
         createError([
           {
             field: 'email',
-            message: `${err}`,
+            message: 'user with the given email or login already exists',
           },
         ]),
       );
