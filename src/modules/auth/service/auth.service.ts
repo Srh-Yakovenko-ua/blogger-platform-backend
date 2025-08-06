@@ -69,8 +69,10 @@ export const authService = {
     if (findUser.emailConfirmation?.confirmationCode) throw 'email already confirmed';
 
     const newCode = randomUUID();
+    const expirationDate = add(new Date(), { hours: 1, minutes: 30 });
     await userService.updateUser(findUser._id.toString(), {
       'emailConfirmation.confirmationCode': newCode,
+      'emailConfirmation.expirationDate': expirationDate,
     });
 
     try {
