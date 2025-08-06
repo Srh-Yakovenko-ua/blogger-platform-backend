@@ -8,7 +8,6 @@ import { add } from 'date-fns';
 import { userRepository } from '../../users/repository/user.repository';
 import { emailServices } from '../../../shared/utils/email-services';
 import { userService } from '../../users/service/user.service';
-import { AppError } from '../../../shared/utils/app-error';
 export const authService = {
   async loginUser(loginData: { loginOrEmail: string; password: string }) {
     const findUser = await userQueryRepository.getUserByLoginOrEmail(loginData.loginOrEmail);
@@ -30,7 +29,7 @@ export const authService = {
   async registrationUser(data: RegistrationCreateDto) {
     const conflict = await userRepository.existsByLoginOrEmail(data.login, data.email);
 
-    if (conflict) throw conflict.login === data.login ? 'login' : 'email';
+    if (conflict) throw data.login === conflict.login ? 'login' : 'email';
 
     const passwordSalt = await bcryptService.createSalt();
     const passwordHash = await bcryptService.generateHash(data.password, passwordSalt);

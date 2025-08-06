@@ -54,7 +54,7 @@ authRouters.post(
         createError([
           {
             message: 'user with the given email or login already exists',
-            field: 'email',
+            field: `${err}`,
           },
         ]),
       );
@@ -73,7 +73,7 @@ authRouters.post(
       res.status(HttpStatuses.BadRequest).send(
         createError([
           {
-            field: 'code',
+            field: 'email',
             message: `${err}`,
           },
         ]),
