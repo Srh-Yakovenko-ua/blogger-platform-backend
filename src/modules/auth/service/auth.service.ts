@@ -66,7 +66,6 @@ export const authService = {
   async resendingEmailVerificationCode(email: string) {
     const findUser = await userQueryRepository.getUserByLoginOrEmail(email);
     if (!findUser) throw 'User not Found';
-    if (findUser.emailConfirmation?.confirmationCode) throw 'email already confirmed';
 
     const newCode = randomUUID();
     await userService.updateUser(findUser._id.toString(), {
