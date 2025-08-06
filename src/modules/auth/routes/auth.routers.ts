@@ -53,8 +53,8 @@ authRouters.post(
       res.status(HttpStatuses.BadRequest).send(
         createError([
           {
-            field: 'email',
             message: 'user with the given email or login already exists',
+            field: 'email',
           },
         ]),
       );
@@ -88,11 +88,11 @@ authRouters.post(
       await authService.confirmationUser(req.body.code);
       res.sendStatus(HttpStatuses.NoContent);
     } catch (err) {
-      res.status(HttpStatuses.Unauthorized).send(
+      res.status(HttpStatuses.BadRequest).send(
         createError([
           {
-            field: 'code',
             message: `${err}`,
+            field: 'code',
           },
         ]),
       );
