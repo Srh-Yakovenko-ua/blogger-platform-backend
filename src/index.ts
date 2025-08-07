@@ -1,7 +1,8 @@
-import express from 'express';
+import express, { ErrorRequestHandler } from 'express';
 import { setupApp } from './setup-app';
 import { runDB } from './setup/setup-mongo-db';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;

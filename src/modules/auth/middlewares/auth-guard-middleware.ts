@@ -28,7 +28,6 @@ export const authGuardMiddleware = async (req: Request, res: Response, next: Nex
   if (!isValidJwtFormat(token)) return unauthorized();
 
   const payload: any = await jwtService.verifyToken(token);
-  console.log(payload);
   if (!payload) return unauthorized();
 
   req.user = { id: payload.userId };

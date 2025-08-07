@@ -8,28 +8,55 @@ import { add } from 'date-fns';
 import { userRepository } from '../../users/repository/user.repository';
 import { emailServices } from '../../../shared/utils/email-services';
 import { userService } from '../../users/service/user.service';
+import { ResultFactory } from '../../../shared/utils/result-factory';
+import { HttpStatuses } from '../../../shared/enums/http-statuses';
+
 export const authService = {
   async loginUser(loginData: { loginOrEmail: string; password: string }) {
     const findUser = await userQueryRepository.getUserByLoginOrEmail(loginData.loginOrEmail);
     if (!findUser) {
-      throw 'User not found';
+      return ResultFactory.badRequest({
+        field: 'loginOrEmail',
+        message: 'User not found',
+      });
     }
     const isMatchesUserPassword = await bcryptService.compareHash(
       loginData.password,
       findUser.passwordHash,
     );
     if (!isMatchesUserPassword) {
-      throw 'If the password or login or email is wrong';
+      return ResultFactory.unauthorized({
+        field: 'loginOrEmail',
+        message: 'User not found',
+      });
     }
     const accessToken = await jwtService.createToken(findUser._id.toString());
-    if (accessToken) return accessToken;
-    else return null;
+    if (accessToken) {
+      return ResultFactory.success({
+        data: accessToken,
+        status: HttpStatuses.Ok,
+        extensions: accessToken
+          ? []
+          : [{ field: 'loginOrEmail', message: 'Password or login is wrong' }],
+      });
+    } else {
+      return ResultFactory.unauthorized({
+        field: 'loginOrEmail',
+        message: 'Password or login is wrong',
+      });
+    }
   },
 
   async registrationUser(data: RegistrationCreateDto) {
     const conflict = await userRepository.existsByLoginOrEmail(data.login, data.email);
 
-    if (conflict) throw data.login === conflict.login ? 'login' : 'email';
+    if (conflict) {
+      const field = data.login === conflict.login ? 'login' : 'email';
+      return ResultFactory.badRequest({
+        field,
+        message: `user with the given ${field} already exists`,
+      });
+    }
 
     const passwordSalt = await bcryptService.createSalt();
     const passwordHash = await bcryptService.generateHash(data.password, passwordSalt);
@@ -60,13 +87,24 @@ export const authService = {
       console.error('Send email error', err);
     }
 
-    return newUser;
+    return ResultFactory.noContent();
   },
 
   async resendingEmailVerificationCode(email: string) {
     const findUser = await userQueryRepository.getUserByLoginOrEmail(email);
-    if (!findUser) throw 'User not Found';
-    if (findUser.emailConfirmation?.confirmationCode) throw 'email already confirmed';
+    if (!findUser) {
+      return ResultFactory.badRequest({
+        field: 'email',
+        message: 'User not found',
+      });
+    }
+
+    if (findUser.emailConfirmation?.isConfirmed) {
+      return ResultFactory.badRequest({
+        field: 'email',
+        message: 'email already confirmed',
+      });
+    }
 
     const newCode = randomUUID();
     const expirationDate = add(new Date(), { hours: 1, minutes: 30 });
@@ -83,6 +121,8 @@ export const authService = {
     } catch (err) {
       console.error('Send email error', err);
     }
+
+    return ResultFactory.noContent();
   },
 
   async confirmationUser(code: string) {
@@ -92,24 +132,44 @@ export const authService = {
       return uuidPattern.test(code);
     }
     const isNotValid = await isValidUUID(code);
-    if (!isNotValid) throw 'Code not Valid';
+    if (!isNotValid) {
+      return ResultFactory.badRequest({
+        field: 'code',
+        message: 'Code not Valid',
+      });
+    }
     function isExpiredCode(expirationDate: Date | undefined): boolean {
       if (!expirationDate) return false;
       return Date.now() > expirationDate.getTime();
     }
     const findUser = await userQueryRepository.getUserByConfirmationCode(code);
     if (!findUser) {
-      throw 'User not found';
+      return ResultFactory.badRequest({
+        field: 'code',
+        message: 'User not found',
+      });
     }
     const isExpired = isExpiredCode(findUser.emailConfirmation?.expirationDate);
 
     const hasBeenApplied = findUser.emailConfirmation?.isConfirmed === true;
-    if (isExpired) throw 'Code expired';
+    if (isExpired) {
+      return ResultFactory.badRequest({
+        field: 'code',
+        message: 'Code expired',
+      });
+    }
 
-    if (hasBeenApplied) throw 'Code Already Applied';
+    if (hasBeenApplied) {
+      return ResultFactory.badRequest({
+        field: 'code',
+        message: 'Code Already Applied',
+      });
+    }
 
-    return await userService.updateUser(findUser._id.toString(), {
+    await userService.updateUser(findUser._id.toString(), {
       'emailConfirmation.isConfirmed': true,
     });
+
+    return ResultFactory.noContent();
   },
 };

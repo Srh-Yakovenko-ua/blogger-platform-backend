@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import express, { ErrorRequestHandler, Express, NextFunction, Request, Response } from 'express';
 import { blogRouters } from './modules/blogs/routers/blog.routers';
 import { testingRouters } from './testing/testing-routers';
 import { postRouters } from './modules/posts/routers/post.routers';

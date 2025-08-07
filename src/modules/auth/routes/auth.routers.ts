@@ -1,4 +1,4 @@
-import { Router, Response, Request } from 'express';
+import { Request, Response, Router } from 'express';
 import { loginValidation } from '../dto/login-dto';
 import { throwValidationErrorsDTO } from '../../../shared/dto/throw-validation-errors-dto';
 import { authService } from '../service/auth.service';
@@ -18,26 +18,17 @@ authRouters.post(
   loginValidation,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, { loginOrEmail: string; password: string }, {}>, res: Response) => {
-    try {
-      const accessToken = await authService.loginUser(req.body);
+    const result = await authService.loginUser(req.body);
 
-      if (accessToken) {
-        res.status(HttpStatuses.Ok).send({ accessToken });
-      } else {
-        res
-          .status(HttpStatuses.Unauthorized)
-          .send(createError([{ field: 'loginOrEmail', message: 'Password or login is wrong' }]));
-      }
-    } catch (err) {
-      res.status(HttpStatuses.BadRequest).send(
-        createError([
-          {
-            message: `${err}`,
-            field: 'loginOrEmail',
-          },
-        ]),
-      );
+    if (result.status === HttpStatuses.BadRequest) {
+      res.status(result.status).send(createError(result.extensions));
+      return;
     }
+    if (result.status === HttpStatuses.Unauthorized) {
+      res.status(result.status).send(createError(result.extensions));
+      return;
+    }
+    res.status(result.status).send({ accessToken: result.data });
   },
 );
 
@@ -46,19 +37,12 @@ authRouters.post(
   registrationDto,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, RegistrationCreateDto, {}>, res: Response) => {
-    try {
-      await authService.registrationUser(req.body);
-      res.sendStatus(HttpStatuses.NoContent);
-    } catch (err) {
-      res.status(HttpStatuses.BadRequest).send(
-        createError([
-          {
-            message: 'user with the given email or login already exists',
-            field: `${err}`,
-          },
-        ]),
-      );
+    const result = await authService.registrationUser(req.body);
+    if (result.status === HttpStatuses.BadRequest) {
+      res.status(result.status).send(createError(result.extensions));
+      return;
     }
+    res.sendStatus(result.status);
   },
 );
 authRouters.post(
@@ -66,37 +50,24 @@ authRouters.post(
   registrationEmailResendingDto,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, { email: string }, {}>, res: Response) => {
-    try {
-      await authService.resendingEmailVerificationCode(req.body.email);
-      res.sendStatus(HttpStatuses.NoContent);
-    } catch (err) {
-      res.status(HttpStatuses.BadRequest).send(
-        createError([
-          {
-            field: 'email',
-            message: `${err}`,
-          },
-        ]),
-      );
+    const result = await authService.resendingEmailVerificationCode(req.body.email);
+
+    if (result.status === HttpStatuses.BadRequest) {
+      res.status(result.status).send(createError(result.extensions));
+      return;
     }
+    res.sendStatus(result.status);
   },
 );
 authRouters.post(
   '/registration-confirmation',
   async (req: Request<{}, {}, { code: string }, {}>, res: Response) => {
-    try {
-      await authService.confirmationUser(req.body.code);
-      res.sendStatus(HttpStatuses.NoContent);
-    } catch (err) {
-      res.status(HttpStatuses.BadRequest).send(
-        createError([
-          {
-            message: `${err}`,
-            field: 'code',
-          },
-        ]),
-      );
+    const result = await authService.confirmationUser(req.body.code);
+    if (result.status === HttpStatuses.BadRequest) {
+      res.status(result.status).send(createError(result.extensions));
+      return;
     }
+    res.sendStatus(result.status);
   },
 );
 
