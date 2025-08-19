@@ -28,9 +28,34 @@ authRouters.post(
       res.status(result.status).send(createError(result.extensions));
       return;
     }
-    res.status(result.status).send({ accessToken: result.data });
+    res.cookie('refreshToken', result.data?.refreshToken, {
+      httpOnly: true,
+      secure: true,
+
+      path: '/',
+      maxAge: 20 * 1000,
+    });
+    res.status(result.status).send({ accessToken: result.data?.accessToken });
   },
 );
+
+authRouters.post('/refresh-token', async (req: Request<{}, {}, {}, {}>, res: Response) => {
+  const oldRefreshToken = req.cookies.refreshToken;
+  const result = await authService.refreshToken(oldRefreshToken);
+
+  if (result.status === HttpStatuses.Unauthorized) {
+    res.status(result.status).send(createError(result.extensions));
+    return;
+  }
+  res.cookie('refreshToken', result.data?.refreshToken, {
+    httpOnly: true,
+    secure: true,
+
+    path: '/',
+    maxAge: 20 * 1000,
+  });
+  res.status(result.status).send({ accessToken: result.data?.accessToken });
+});
 
 authRouters.post(
   '/registration',

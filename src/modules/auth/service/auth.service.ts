@@ -27,22 +27,69 @@ export const authService = {
     if (!isMatchesUserPassword) {
       return ResultFactory.unauthorized({
         field: 'loginOrEmail',
-        message: 'User not found',
+        message: 'Password or login is wrong',
       });
     }
-    const accessToken = await jwtService.createToken(findUser._id.toString());
-    if (accessToken) {
+    const userId = findUser._id.toString();
+    const accessToken = await jwtService.createToken(userId);
+    const refreshToken = await jwtService.createRefreshToken(userId);
+
+    await userService.updateUser(userId, {
+      currentRefreshToken: refreshToken,
+    });
+    if (accessToken && refreshToken) {
       return ResultFactory.success({
-        data: accessToken,
+        data: { accessToken, refreshToken },
         status: HttpStatuses.Ok,
-        extensions: accessToken
-          ? []
-          : [{ field: 'loginOrEmail', message: 'Password or login is wrong' }],
+        extensions: [],
       });
     } else {
       return ResultFactory.unauthorized({
         field: 'loginOrEmail',
         message: 'Password or login is wrong',
+      });
+    }
+  },
+
+  async refreshToken(refreshToken: string) {
+    if (!refreshToken) {
+      return ResultFactory.unauthorized({
+        field: 'token',
+        message: 'token expired',
+      });
+    }
+    const payload: any = await jwtService.verifyRefreshToken(refreshToken);
+    if (!payload) {
+      return ResultFactory.unauthorized({
+        field: 'token',
+        message: 'token expired',
+      });
+    }
+    const userId = payload.userId;
+
+    const user = await userQueryRepository.getUserByID(userId);
+    if (!user || user.currentRefreshToken !== refreshToken) {
+      return ResultFactory.unauthorized({
+        field: 'token',
+        message: 'token expired',
+      });
+    }
+    const newAccessToken = await jwtService.createToken(userId);
+    const newRefreshToken = await jwtService.createRefreshToken(userId);
+    await userService.updateUser(userId, {
+      currentRefreshToken: refreshToken,
+    });
+
+    if (newAccessToken && newRefreshToken) {
+      return ResultFactory.success({
+        data: { accessToken: newAccessToken, refreshToken: newRefreshToken },
+        status: HttpStatuses.Ok,
+        extensions: [],
+      });
+    } else {
+      return ResultFactory.unauthorized({
+        field: 'token',
+        message: 'token expired',
       });
     }
   },
@@ -66,6 +113,7 @@ export const authService = {
       passwordHash,
       email: data.email,
       createdAt: new Date().toISOString(),
+      currentRefreshToken: null,
       emailConfirmation: {
         confirmationCode: randomUUID(),
         expirationDate: add(new Date(), {

@@ -1,4 +1,6 @@
 import express, { ErrorRequestHandler, Express, NextFunction, Request, Response } from 'express';
+import cookieParser from 'cookie-parser';
+
 import { blogRouters } from './modules/blogs/routers/blog.routers';
 import { testingRouters } from './testing/testing-routers';
 import { postRouters } from './modules/posts/routers/post.routers';
@@ -9,6 +11,7 @@ import { commentsRouters } from './modules/comments/routes/comments-routers';
 const INIT_ROUTE = '/ht_02/api';
 export const setupApp = (app: Express) => {
   app.use(express.json());
+  app.use(cookieParser());
 
   app.use(`${INIT_ROUTE}/auth`, authRouters);
   app.use(`${INIT_ROUTE}/users`, userRouters);

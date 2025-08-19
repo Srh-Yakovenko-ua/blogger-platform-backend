@@ -19,6 +19,7 @@ export type UserDBType = {
   email: string;
   createdAt: string;
   passwordHash: string;
+  currentRefreshToken: string | null;
   emailConfirmation: Nullable<EmailConfirmationType>;
 };
 

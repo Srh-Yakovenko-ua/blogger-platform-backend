@@ -18,6 +18,7 @@ export const userService = {
       createdAt: createdAt,
       passwordHash: hash,
       emailConfirmation: null,
+      currentRefreshToken: null,
     };
 
     const newUser = await userRepository.createUser(userToInsert);

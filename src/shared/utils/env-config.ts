@@ -12,4 +12,7 @@ export const envConfig = {
   gmailFrom: process.env.GMAIL_FROM,
   gmailUser: process.env.GMAIL_USER,
   gmailPass: process.env.GMAIL_APP_PASSWORD,
+
+  refreshSecret: process.env.REFRESH_SECRET_TOKEN,
+  refreshExpiredTime: process.env.REFRESH_AC_TIME,
 };

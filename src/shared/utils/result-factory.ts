@@ -44,7 +44,7 @@ export class ResultFactory {
   static notFound({ message = 'Not Found', field }: { message: string; field: string }): Result {
     return this.fail(HttpStatuses.NotFound, message, [{ field, message }]);
   }
-  static noContent(): Result<null> {
+  static noContent(): Result {
     return {
       status: HttpStatuses.NoContent,
       data: null,
