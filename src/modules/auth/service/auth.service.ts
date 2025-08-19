@@ -65,7 +65,15 @@ export const authService = {
         message: 'token expired',
       });
     }
+
     const userId = payload.userId;
+    const user = await userQueryRepository.getUserByID(userId);
+    if (!user || user.currentRefreshToken !== refreshToken) {
+      return ResultFactory.unauthorized({
+        field: 'token',
+        message: 'token expired',
+      });
+    }
     await userService.updateUser(userId, {
       currentRefreshToken: null,
     });
