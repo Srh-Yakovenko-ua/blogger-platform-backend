@@ -51,6 +51,28 @@ export const authService = {
     }
   },
 
+  async logout(refreshToken: string) {
+    if (!refreshToken) {
+      return ResultFactory.unauthorized({
+        field: 'token',
+        message: 'token expired',
+      });
+    }
+    const payload: any = await jwtService.verifyRefreshToken(refreshToken);
+    if (!payload) {
+      return ResultFactory.unauthorized({
+        field: 'token',
+        message: 'token expired',
+      });
+    }
+    const userId = payload.userId;
+    await userService.updateUser(userId, {
+      currentRefreshToken: null,
+    });
+
+    return ResultFactory.noContent();
+  },
+
   async refreshToken(refreshToken: string) {
     if (!refreshToken) {
       return ResultFactory.unauthorized({
@@ -77,7 +99,7 @@ export const authService = {
     const newAccessToken = await jwtService.createToken(userId);
     const newRefreshToken = await jwtService.createRefreshToken(userId);
     await userService.updateUser(userId, {
-      currentRefreshToken: refreshToken,
+      currentRefreshToken: newRefreshToken,
     });
 
     if (newAccessToken && newRefreshToken) {

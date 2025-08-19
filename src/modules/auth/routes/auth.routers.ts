@@ -39,6 +39,20 @@ authRouters.post(
   },
 );
 
+authRouters.post('/logout', async (req: Request<{}, {}, {}, {}>, res: Response) => {
+  const refreshToken = req.cookies?.refreshToken;
+  const result = await authService.logout(refreshToken);
+  if (result.status === HttpStatuses.Unauthorized) {
+    res.status(result.status).send(createError(result.extensions));
+    return;
+  }
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: true,
+  });
+  res.sendStatus(result.status);
+});
+
 authRouters.post('/refresh-token', async (req: Request<{}, {}, {}, {}>, res: Response) => {
   const oldRefreshToken = req.cookies.refreshToken;
   const result = await authService.refreshToken(oldRefreshToken);
