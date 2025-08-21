@@ -10,12 +10,14 @@ import { registrationDto } from '../dto/registration-dto';
 
 import { RegistrationCreateDto } from '../types/registration-create-dto';
 import { registrationEmailResendingDto } from '../types/registration-email-resending-dto';
+import { rateLimitMiddleware } from '../../../shared/middleware/rate-limit-middleware';
 
 export const authRouters = Router({});
 
 authRouters.post(
   '/login',
   loginValidation,
+  rateLimitMiddleware,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, { loginOrEmail: string; password: string }, {}>, res: Response) => {
     const result = await authService.loginUser(req.body);
@@ -31,7 +33,6 @@ authRouters.post(
     res.cookie('refreshToken', result.data?.refreshToken, {
       httpOnly: true,
       secure: true,
-
       path: '/',
       maxAge: 20 * 1000,
     });
@@ -54,8 +55,8 @@ authRouters.post('/logout', async (req: Request<{}, {}, {}, {}>, res: Response) 
 });
 
 authRouters.post('/refresh-token', async (req: Request<{}, {}, {}, {}>, res: Response) => {
-  const oldRefreshToken = req.cookies.refreshToken;
-  const result = await authService.refreshToken(oldRefreshToken);
+  const refreshToken = req.cookies.refreshToken;
+  const result = await authService.refreshToken(refreshToken);
 
   if (result.status === HttpStatuses.Unauthorized) {
     res.status(result.status).send(createError(result.extensions));
@@ -64,7 +65,6 @@ authRouters.post('/refresh-token', async (req: Request<{}, {}, {}, {}>, res: Res
   res.cookie('refreshToken', result.data?.refreshToken, {
     httpOnly: true,
     secure: true,
-
     path: '/',
     maxAge: 20 * 1000,
   });
@@ -118,7 +118,13 @@ authRouters.get(
     const userID = req.user?.id as string;
 
     const findMe = await userQueryService.getUserByID(userID);
+
     if (!findMe) res.sendStatus(HttpStatuses.Unauthorized);
-    res.status(HttpStatuses.Ok).send(findMe);
+    const meData = {
+      email: findMe?.email,
+      userId: findMe?.id,
+      login: findMe?.login,
+    };
+    res.status(HttpStatuses.Ok).send(meData);
   },
 );

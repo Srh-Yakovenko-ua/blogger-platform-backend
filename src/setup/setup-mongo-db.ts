@@ -8,6 +8,15 @@ export let postsCollections: Collection<PostType>;
 export let blogsCollections: Collection<BlogType>;
 export let usersCollections: Collection<UserDBType>;
 export let commentsCollections: Collection<CommentDBType>;
+export let rateLimitsCollections: Collection<{
+  ip: string;
+  url: string;
+  date: Date;
+}>;
+
+const initRateLimitIndexes = async (db: Db) => {
+  await db.collection('rate-limits').createIndex({ date: 1 }, { expireAfterSeconds: 60 });
+};
 export async function runDB(url: string): Promise<void> {
   const client = new MongoClient(url, {
     serverApi: {
@@ -21,9 +30,11 @@ export async function runDB(url: string): Promise<void> {
   postsCollections = db.collection<PostType>('posts');
   usersCollections = db.collection<UserDBType>('users');
   commentsCollections = db.collection<any>('comments');
+  rateLimitsCollections = db.collection<any>('rate-limits');
   try {
     await client.connect();
     await db.command({ ping: 1 });
+    await initRateLimitIndexes(db);
     console.log('✅ Connected to the database');
   } catch (e) {
     await client.close();

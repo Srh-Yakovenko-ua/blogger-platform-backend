@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { HttpStatuses } from '../../../shared/enums/http-statuses';
 import { createError } from '../../../shared/utils/create-error';
 import { jwtService } from '../../../shared/utils/jwt-service';
+import { loginValidation } from '../dto/login-dto';
 
 type PayloadAccessTokenType = {
   userId: string;
