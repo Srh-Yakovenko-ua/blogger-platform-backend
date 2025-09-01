@@ -3,16 +3,19 @@ import { PostType } from '../modules/posts/types/post-types';
 import { BlogType } from '../modules/blogs/types/blog.types';
 import { UserDBType, UserType } from '../modules/users/types/user-types';
 import { CommentDBType } from '../modules/comments/types';
+import { DeviceSessionDBType } from '../modules/device-sessions/types/device-sessions-types';
 
+type RateLimit = {
+  ip: string;
+  url: string;
+  date: Date;
+};
 export let postsCollections: Collection<PostType>;
 export let blogsCollections: Collection<BlogType>;
 export let usersCollections: Collection<UserDBType>;
 export let commentsCollections: Collection<CommentDBType>;
-export let rateLimitsCollections: Collection<{
-  ip: string;
-  url: string;
-  date: Date;
-}>;
+export let rateLimitsCollections: Collection<RateLimit>;
+export let deviceSessionsCollections: Collection<DeviceSessionDBType>;
 
 const initRateLimitIndexes = async (db: Db) => {
   await db.collection('rate-limits').createIndex({ date: 1 }, { expireAfterSeconds: 60 });
@@ -29,8 +32,9 @@ export async function runDB(url: string): Promise<void> {
   blogsCollections = db.collection<BlogType>('blogs');
   postsCollections = db.collection<PostType>('posts');
   usersCollections = db.collection<UserDBType>('users');
-  commentsCollections = db.collection<any>('comments');
-  rateLimitsCollections = db.collection<any>('rate-limits');
+  commentsCollections = db.collection<CommentDBType>('comments');
+  rateLimitsCollections = db.collection<RateLimit>('rate-limits');
+  deviceSessionsCollections = db.collection<DeviceSessionDBType>('device-sessions');
   try {
     await client.connect();
     await db.command({ ping: 1 });

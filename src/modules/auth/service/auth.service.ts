@@ -10,9 +10,14 @@ import { emailServices } from '../../../shared/utils/email-services';
 import { userService } from '../../users/service/user.service';
 import { ResultFactory } from '../../../shared/utils/result-factory';
 import { HttpStatuses } from '../../../shared/enums/http-statuses';
+import { getClientIp } from '../../../shared/utils/get-client-ip';
+import { Request } from 'express';
+import { DeviceSessionDBType } from '../../device-sessions/types/device-sessions-types';
+import { deviceSessionsRepository } from '../../device-sessions/repository/device-sessions-repository';
+import { deviceSessionsCollections } from '../../../setup/setup-mongo-db';
 
 export const authService = {
-  async loginUser(loginData: { loginOrEmail: string; password: string }) {
+  async loginUser(loginData: { loginOrEmail: string; password: string }, req: Request) {
     const findUser = await userQueryRepository.getUserByLoginOrEmail(loginData.loginOrEmail);
     if (!findUser) {
       return ResultFactory.badRequest({
@@ -30,9 +35,21 @@ export const authService = {
         message: 'Password or login is wrong',
       });
     }
+    const deviceId = randomUUID();
     const userId = findUser._id.toString();
     const accessToken = await jwtService.createToken(userId);
-    const refreshToken = await jwtService.createRefreshToken(userId);
+    const refreshToken = await jwtService.createRefreshToken(userId, deviceId);
+    // const decodeRefresh: any = await jwtService.verifyRefreshToken(refreshToken);
+
+    // const deviceSessionData: DeviceSessionDBType = {
+    //   userId,
+    //   deviceId,
+    //   ip: getClientIp(req),
+    //   agent: req.headers['user-agent'] || 'Unknown',
+    //   lastActiveDate: new Date(decodeRefresh.iat * 1000).toISOString(),
+    //   expiresDate: new Date(decodeRefresh.exp * 1000).toISOString(),
+    // };
+    // await deviceSessionsRepository.createSession(deviceSessionData);
 
     await userService.updateUser(userId, {
       currentRefreshToken: refreshToken,
@@ -88,13 +105,23 @@ export const authService = {
         message: 'token expired',
       });
     }
+
     const payload: any = await jwtService.verifyRefreshToken(refreshToken);
+
     if (!payload) {
       return ResultFactory.unauthorized({
         field: 'token',
         message: 'token expired',
       });
     }
+    const session = await deviceSessionsCollections.findOne({ deviceId: payload.deviceId });
+    if (!session) {
+      return ResultFactory.unauthorized({
+        field: 'token',
+        message: 'token expired',
+      });
+    }
+
     const userId = payload.userId;
 
     const user = await userQueryRepository.getUserByID(userId);
@@ -106,9 +133,20 @@ export const authService = {
     }
     const newAccessToken = await jwtService.createToken(userId);
     const newRefreshToken = await jwtService.createRefreshToken(userId);
+    const newPayload: any = await jwtService.verifyRefreshToken(newRefreshToken);
+
     await userService.updateUser(userId, {
       currentRefreshToken: newRefreshToken,
     });
+    await deviceSessionsCollections.updateOne(
+      { deviceId: newPayload.deviceId },
+      {
+        $set: {
+          lastActiveDate: new Date(newPayload.iat * 1000).toISOString(),
+          expiresDate: new Date(newPayload.exp * 1000).toISOString(),
+        },
+      },
+    );
 
     if (newAccessToken && newRefreshToken) {
       return ResultFactory.success({

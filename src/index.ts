@@ -9,9 +9,9 @@ const PORT = process.env.PORT || 5000;
 
 const localUri = process.env.MOGNO_LOCAL;
 const atlasUri = process.env.MONGO_ATLAS;
-const app = express();
+export const app = express();
 
-async function bootstrap() {
+export async function bootstrap() {
   await runDB(atlasUri!);
   setupApp(app);
 

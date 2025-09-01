@@ -20,7 +20,7 @@ authRouters.post(
   rateLimitMiddleware,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, { loginOrEmail: string; password: string }, {}>, res: Response) => {
-    const result = await authService.loginUser(req.body);
+    const result = await authService.loginUser(req.body, req);
 
     if (result.status === HttpStatuses.BadRequest) {
       res.status(result.status).send(createError(result.extensions));

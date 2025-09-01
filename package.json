@@ -8,7 +8,8 @@
     "dev": "nodemon --inspect dist/index.js",
     "jest": "jest -i",
     "lint": "eslint --fix .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -24,8 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "mailtrap": "^4.2.0",
     "mongodb": "^6.17.0",
-    "nodemailer": "^7.0.5",
-    "save-dev": "0.0.1-security"
+    "nodemailer": "^7.0.5"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
