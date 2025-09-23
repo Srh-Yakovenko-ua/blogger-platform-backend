@@ -48,7 +48,7 @@ export const emailServices = {
   },
 
   async sendRecoveryPassword({ toEmail, code }: { toEmail: string; code: string }) {
-    await mailTrapTransporter.sendMail({
+    await transporter.sendMail({
       from: `"Bloger Platform" <${envConfig.mailtrapFromEmail}>`,
       to: toEmail,
       subject: 'Email recovery',
