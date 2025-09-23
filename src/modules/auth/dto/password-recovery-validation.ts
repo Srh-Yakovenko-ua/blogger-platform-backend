@@ -1,10 +1,10 @@
 import { body } from 'express-validator';
 
-export const registrationEmailResendingDto = [
+export const passwordRecoveryValidation = [
   body('email')
     .trim()
     .notEmpty()
-    .withMessage('Email is required')
+    .withMessage('email is required')
     .isEmail()
     .withMessage('Invalid email format'),
 ];

@@ -9,8 +9,10 @@ import { userQueryService } from '../../users/service/user-query.service';
 import { registrationDto } from '../dto/registration-dto';
 
 import { RegistrationCreateDto } from '../types/registration-create-dto';
-import { registrationEmailResendingDto } from '../types/registration-email-resending-dto';
+import { registrationEmailResendingValidation } from '../types/registration-email-resending-validation';
 import { rateLimitMiddleware } from '../../../shared/middleware/rate-limit-middleware';
+import { passwordRecoveryValidation } from '../dto/password-recovery-validation';
+import { newPasswordValidation } from '../dto/new-password-validation';
 
 export const authRouters = Router({});
 
@@ -84,9 +86,39 @@ authRouters.post(
     res.sendStatus(result.status);
   },
 );
+
+authRouters.post(
+  '/password-recovery',
+  rateLimitMiddleware,
+  passwordRecoveryValidation,
+  throwValidationErrorsDTO,
+  async (req: Request<{}, {}, { email: string }, {}>, res: Response) => {
+    const result = await authService.passwordRecovery(req.body.email);
+
+    res.sendStatus(result?.status);
+  },
+);
+authRouters.post(
+  '/new-password',
+  rateLimitMiddleware,
+  newPasswordValidation,
+  throwValidationErrorsDTO,
+  async (
+    req: Request<{}, {}, { newPassword: string; recoveryCode: string }, {}>,
+    res: Response,
+  ) => {
+    const result = await authService.createNewPassword(req.body);
+
+    if (result.status === HttpStatuses.BadRequest) {
+      res.status(result.status).send(createError(result.extensions));
+      return;
+    }
+    res.sendStatus(result.status);
+  },
+);
 authRouters.post(
   '/registration-email-resending',
-  registrationEmailResendingDto,
+  registrationEmailResendingValidation,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, { email: string }, {}>, res: Response) => {
     const result = await authService.resendingEmailVerificationCode(req.body.email);

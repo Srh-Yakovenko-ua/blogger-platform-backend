@@ -14,6 +14,11 @@ type EmailConfirmationType = {
   expirationDate: Date;
   isConfirmed: boolean;
 };
+type RecoveryPasswordType = {
+  recoveryCode: string;
+  expirationDate: Date;
+  isRecovery: boolean;
+};
 export type UserDBType = {
   login: string;
   email: string;
@@ -21,6 +26,7 @@ export type UserDBType = {
   passwordHash: string;
   currentRefreshToken: string | null;
   emailConfirmation: Nullable<EmailConfirmationType>;
+  recoveryPassword: Nullable<RecoveryPasswordType>;
 };
 
 export type UserPaginationSearchesType = {

@@ -11,6 +11,9 @@ export const userQueryRepository = {
   async getUserByConfirmationCode(code: string) {
     return usersCollections.findOne({ 'emailConfirmation.confirmationCode': code });
   },
+  async getUserByRecoveryCode(code: string) {
+    return usersCollections.findOne({ 'recoveryPassword.recoveryCode': code });
+  },
 
   async getUserByLoginOrEmail(loginOrEmail: string): Promise<WithId<UserDBType> | null> {
     return usersCollections.findOne({

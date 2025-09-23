@@ -19,6 +19,7 @@ export const userService = {
       passwordHash: hash,
       emailConfirmation: null,
       currentRefreshToken: null,
+      recoveryPassword: null,
     };
 
     const newUser = await userRepository.createUser(userToInsert);

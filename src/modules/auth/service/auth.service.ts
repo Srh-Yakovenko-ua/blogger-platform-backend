@@ -39,17 +39,17 @@ export const authService = {
     const userId = findUser._id.toString();
     const accessToken = await jwtService.createToken(userId);
     const refreshToken = await jwtService.createRefreshToken(userId, deviceId);
-    // const decodeRefresh: any = await jwtService.verifyRefreshToken(refreshToken);
+    const decodeRefresh: any = await jwtService.verifyRefreshToken(refreshToken);
 
-    // const deviceSessionData: DeviceSessionDBType = {
-    //   userId,
-    //   deviceId,
-    //   ip: getClientIp(req),
-    //   agent: req.headers['user-agent'] || 'Unknown',
-    //   lastActiveDate: new Date(decodeRefresh.iat * 1000).toISOString(),
-    //   expiresDate: new Date(decodeRefresh.exp * 1000).toISOString(),
-    // };
-    // await deviceSessionsRepository.createSession(deviceSessionData);
+    const deviceSessionData: DeviceSessionDBType = {
+      userId,
+      deviceId,
+      ip: getClientIp(req),
+      agent: req.headers['user-agent'] || 'Unknown',
+      lastActiveDate: new Date(decodeRefresh.iat * 1000).toISOString(),
+      expiresDate: new Date(decodeRefresh.exp * 1000).toISOString(),
+    };
+    await deviceSessionsRepository.createSession(deviceSessionData);
 
     await userService.updateUser(userId, {
       currentRefreshToken: refreshToken,
@@ -182,6 +182,14 @@ export const authService = {
       email: data.email,
       createdAt: new Date().toISOString(),
       currentRefreshToken: null,
+      recoveryPassword: {
+        recoveryCode: randomUUID(),
+        expirationDate: add(new Date(), {
+          hours: 1,
+          minutes: 30,
+        }),
+        isRecovery: false,
+      },
       emailConfirmation: {
         confirmationCode: randomUUID(),
         expirationDate: add(new Date(), {
@@ -202,6 +210,90 @@ export const authService = {
     } catch (err) {
       console.error('Send email error', err);
     }
+
+    return ResultFactory.noContent();
+  },
+
+  async passwordRecovery(email: string) {
+    const findUserByEmail = await userQueryRepository.getUserByLoginOrEmail(email);
+    if (!findUserByEmail) {
+      return ResultFactory.badRequest({
+        field: 'email',
+        message: 'User not found',
+      });
+    }
+
+    const recoveryCode = randomUUID();
+    const expirationDate = add(new Date(), { hours: 1, minutes: 30 });
+    await userService.updateUser(findUserByEmail._id.toString(), {
+      'recoveryPassword.recoveryCode': recoveryCode,
+      'recoveryPassword.expirationDate': expirationDate,
+      'recoveryPassword.isRecovery': false,
+    });
+
+    try {
+      await emailServices.sendRecoveryPassword({
+        toEmail: email,
+        code: recoveryCode,
+      });
+    } catch (err) {
+      console.error('Send email error', err);
+    }
+
+    return ResultFactory.noContent();
+  },
+
+  async createNewPassword(data: { newPassword: string; recoveryCode: string }) {
+    const { recoveryCode, newPassword } = data;
+
+    async function isValidUUID(code: string): Promise<boolean> {
+      const uuidPattern =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      return uuidPattern.test(code);
+    }
+    const isNotValid = await isValidUUID(recoveryCode);
+    if (!isNotValid) {
+      return ResultFactory.badRequest({
+        field: 'code',
+        message: 'Code not Valid',
+      });
+    }
+    function isExpiredCode(expirationDate: Date | undefined): boolean {
+      if (!expirationDate) return false;
+      return Date.now() > expirationDate.getTime();
+    }
+    const findUser = await userQueryRepository.getUserByRecoveryCode(recoveryCode);
+    if (!findUser) {
+      return ResultFactory.badRequest({
+        field: 'email',
+        message: 'User not found',
+      });
+    }
+
+    const passwordSalt = await bcryptService.createSalt();
+    const passwordHash = await bcryptService.generateHash(newPassword, passwordSalt);
+
+    const isExpired = isExpiredCode(findUser.emailConfirmation?.expirationDate);
+
+    const hasBeenApplied = findUser.recoveryPassword?.isRecovery === true;
+    if (isExpired) {
+      return ResultFactory.badRequest({
+        field: 'code',
+        message: 'Code expired',
+      });
+    }
+
+    if (hasBeenApplied) {
+      return ResultFactory.badRequest({
+        field: 'code',
+        message: 'Code Already Applied',
+      });
+    }
+
+    await userService.updateUser(findUser._id.toString(), {
+      'recoveryPassword.isRecovery': true,
+      passwordHash: passwordHash,
+    });
 
     return ResultFactory.noContent();
   },
