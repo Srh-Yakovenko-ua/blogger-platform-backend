@@ -20,6 +20,8 @@ export const inputUserDto = [
     .trim()
     .notEmpty()
     .withMessage('email is required')
-    .matches(/^[\w\-.]+@([\w-]+\.)+[\w]{2,4}$/)
+    .matches(
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+    )
     .withMessage('Invalid email format'),
 ];
