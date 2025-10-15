@@ -1,22 +1,23 @@
-import { Router, Request, Response } from 'express';
-import { authGuardMiddleware } from '../../auth/middlewares/auth-guard-middleware';
+import { Router, Request, Response, NextFunction } from 'express';
 import { throwValidationErrorsDTO } from '../../../shared/dto/throw-validation-errors-dto';
 import { deviceSessionsCollections } from '../../../setup/setup-mongo-db';
 import { HttpStatuses } from '../../../shared/enums/http-statuses';
 import { jwtService } from '../../../shared/utils/jwt-service';
+import { createError } from '../../../shared/utils/create-error';
+import { refreshTokenGuardMiddleware } from '../../auth/middlewares/refresh-token-guard-middleware';
 
 export const deviceSessionsRoutes = Router({});
 
 deviceSessionsRoutes.get(
   '/devices',
-  authGuardMiddleware,
+  refreshTokenGuardMiddleware,
   throwValidationErrorsDTO,
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
     const findAll = await deviceSessionsCollections.find({ userId }).toArray();
     const viewModel = findAll.map((session) => ({
       ip: session.ip,
-      title: session.agent,
+      title: session.agent || 'Unknown Device',
       lastActiveDate: session.lastActiveDate,
       deviceId: session.deviceId,
     }));
@@ -25,43 +26,92 @@ deviceSessionsRoutes.get(
 );
 deviceSessionsRoutes.delete(
   '/devices/:deviceId',
-  authGuardMiddleware,
+  refreshTokenGuardMiddleware,
   throwValidationErrorsDTO,
   async (req: Request<{ deviceId: string }>, res: Response) => {
-    const refreshToken = req.cookies?.refreshToken;
-    console.log(refreshToken);
-    const payload: any = await jwtService.verifyRefreshToken(refreshToken);
+    try {
+      const refreshToken = req.cookies?.refreshToken;
 
-    const userId = req.user?.id;
-    const currentDeviceId = payload.deviceId;
-    const targetDeviceId = req.params.deviceId;
-    console.log(targetDeviceId);
-    if (!targetDeviceId) res.sendStatus(HttpStatuses.BadRequest);
-    if (targetDeviceId === currentDeviceId) res.sendStatus(HttpStatuses.Forbidden);
+      if (!refreshToken) {
+        res.sendStatus(HttpStatuses.Unauthorized);
+        return;
+      }
 
-    const session = await deviceSessionsCollections.findOne({ deviceId: targetDeviceId });
+      const payload: any = await jwtService.verifyRefreshToken(refreshToken);
+      if (!payload) {
+        res.sendStatus(HttpStatuses.Unauthorized);
+        return;
+      }
 
-    if (!session) {
-      res.sendStatus(404);
-      return;
+      const userId = req.user?.id;
+      const currentDeviceId = payload.deviceId;
+      const targetDeviceId = req.params.deviceId;
+
+      if (!targetDeviceId) {
+        res.sendStatus(HttpStatuses.BadRequest);
+        return;
+      }
+
+      if (targetDeviceId === currentDeviceId) {
+        res.sendStatus(HttpStatuses.Forbidden);
+        return;
+      }
+
+      const session = await deviceSessionsCollections.findOne({
+        deviceId: targetDeviceId,
+      });
+
+      if (!session) {
+        res.sendStatus(HttpStatuses.NotFound);
+        return;
+      }
+
+      if (session.userId !== userId) {
+        res.sendStatus(HttpStatuses.Forbidden);
+        return;
+      }
+
+      const response = await deviceSessionsCollections.deleteOne({ deviceId: targetDeviceId });
+      console.log(response);
+      res.sendStatus(HttpStatuses.NoContent);
+    } catch (error) {
+      console.error('Error deleting device session:', error);
+      res.sendStatus(HttpStatuses.InternalServerError);
     }
-    if (session.userId !== userId) res.sendStatus(403);
-
-    await deviceSessionsCollections.deleteOne({ deviceId: targetDeviceId });
-
-    res.sendStatus(204);
   },
 );
+
 deviceSessionsRoutes.delete(
   '/devices',
-  authGuardMiddleware,
+  refreshTokenGuardMiddleware,
   throwValidationErrorsDTO,
   async (req: Request, res: Response) => {
-    const userId = req.user?.id;
+    try {
+      const refreshToken = req.cookies?.refreshToken;
 
-    await deviceSessionsCollections.deleteMany({
-      userId,
-    });
-    res.sendStatus(HttpStatuses.NoContent);
+      if (!refreshToken) {
+        res.sendStatus(HttpStatuses.Unauthorized);
+        return;
+      }
+
+      const payload: any = await jwtService.verifyRefreshToken(refreshToken);
+      if (!payload) {
+        res.sendStatus(HttpStatuses.Unauthorized);
+        return;
+      }
+
+      const userId = req.user?.id;
+      const currentDeviceId = payload.deviceId;
+
+      await deviceSessionsCollections.deleteMany({
+        userId,
+        deviceId: { $ne: currentDeviceId },
+      });
+
+      res.sendStatus(HttpStatuses.NoContent);
+    } catch (error) {
+      console.error('Error deleting devices:', error);
+      res.sendStatus(HttpStatuses.InternalServerError);
+    }
   },
 );

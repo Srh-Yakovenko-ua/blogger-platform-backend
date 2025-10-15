@@ -12,24 +12,36 @@ export const rateLimitMiddleware = async (req: Request, res: Response, next: Nex
   const now = new Date();
   const windowStart = new Date(now.getTime() - TIME_WINDOW_SEC * 1000);
 
-  const recentRequests = await rateLimitsCollections.countDocuments({
-    ip,
-    url,
-    date: { $gte: windowStart },
-  });
+  try {
+    await rateLimitsCollections.deleteMany({
+      ip,
+      url,
+      date: { $lt: windowStart },
+    });
 
-  if (recentRequests >= REQUEST_LIMIT) {
-    res.status(HttpStatuses.TooManyAttempts).send(
-      createError([
-        {
-          field: '',
-          message: 'Too many requests. Please try again later.',
-        },
-      ]),
-    );
+    const recentRequests = await rateLimitsCollections.countDocuments({
+      ip,
+      url,
+      date: { $gte: windowStart },
+    });
+
+    if (recentRequests >= REQUEST_LIMIT) {
+      res.status(HttpStatuses.TooManyAttempts).send(
+        createError([
+          {
+            field: '',
+            message: 'Too many requests. Please try again later.',
+          },
+        ]),
+      );
+      return;
+    }
+
+    await rateLimitsCollections.insertOne({ ip, url, date: now });
+
+    next();
+  } catch (error) {
+    console.error('Rate limit error:', error);
+    next();
   }
-
-  await rateLimitsCollections.insertOne({ ip, url, date: now });
-
-  next();
 };

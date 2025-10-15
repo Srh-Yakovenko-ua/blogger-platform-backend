@@ -18,7 +18,7 @@ export let rateLimitsCollections: Collection<RateLimit>;
 export let deviceSessionsCollections: Collection<DeviceSessionDBType>;
 
 const initRateLimitIndexes = async (db: Db) => {
-  await db.collection('rate-limits').createIndex({ date: 1 }, { expireAfterSeconds: 60 });
+  await db.collection('rate-limits').createIndex({ date: 2 }, { expireAfterSeconds: 60 });
 };
 export async function runDB(url: string): Promise<void> {
   const client = new MongoClient(url, {

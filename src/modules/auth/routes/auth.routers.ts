@@ -13,13 +13,14 @@ import { registrationEmailResendingValidation } from '../types/registration-emai
 import { rateLimitMiddleware } from '../../../shared/middleware/rate-limit-middleware';
 import { passwordRecoveryValidation } from '../dto/password-recovery-validation';
 import { newPasswordValidation } from '../dto/new-password-validation';
+import { refreshTokenGuardMiddleware } from '../middlewares/refresh-token-guard-middleware';
 
 export const authRouters = Router({});
 
 authRouters.post(
   '/login',
-  loginValidation,
   rateLimitMiddleware,
+  loginValidation,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, { loginOrEmail: string; password: string }, {}>, res: Response) => {
     const result = await authService.loginUser(req.body, req);
@@ -35,47 +36,35 @@ authRouters.post(
     res.cookie('refreshToken', result.data?.refreshToken, {
       httpOnly: true,
       secure: true,
-      path: '/',
-      maxAge: 20 * 1000,
+      sameSite: 'none',
     });
     res.status(result.status).send({ accessToken: result.data?.accessToken });
   },
 );
 
-authRouters.post('/logout', async (req: Request<{}, {}, {}, {}>, res: Response) => {
-  const refreshToken = req.cookies?.refreshToken;
-  const result = await authService.logout(refreshToken);
-  if (result.status === HttpStatuses.Unauthorized) {
-    res.status(result.status).send(createError(result.extensions));
-    return;
-  }
-  res.clearCookie('refreshToken', {
-    httpOnly: true,
-    secure: true,
-  });
-  res.sendStatus(result.status);
-});
-
-authRouters.post('/refresh-token', async (req: Request<{}, {}, {}, {}>, res: Response) => {
-  const refreshToken = req.cookies.refreshToken;
-  const result = await authService.refreshToken(refreshToken);
-
-  if (result.status === HttpStatuses.Unauthorized) {
-    res.status(result.status).send(createError(result.extensions));
-    return;
-  }
-  res.cookie('refreshToken', result.data?.refreshToken, {
-    httpOnly: true,
-    secure: true,
-    path: '/',
-    maxAge: 20 * 1000,
-  });
-  res.status(result.status).send({ accessToken: result.data?.accessToken });
-});
+authRouters.post(
+  '/logout',
+  refreshTokenGuardMiddleware,
+  async (req: Request<{}, {}, {}, {}>, res: Response) => {
+    const deviceId = req.deviceId;
+    const result = await authService.logout(deviceId!);
+    if (result.status === HttpStatuses.Unauthorized) {
+      res.status(result.status).send(createError(result.extensions));
+      return;
+    }
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
+    res.sendStatus(result.status);
+  },
+);
 
 authRouters.post(
   '/registration',
   registrationDto,
+  rateLimitMiddleware,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, RegistrationCreateDto, {}>, res: Response) => {
     const result = await authService.registrationUser(req.body);
@@ -84,6 +73,27 @@ authRouters.post(
       return;
     }
     res.sendStatus(result.status);
+  },
+);
+authRouters.post(
+  '/refresh-token',
+  refreshTokenGuardMiddleware,
+  async (req: Request<{}, {}, {}, {}>, res: Response) => {
+    const refreshToken = req.cookies.refreshToken;
+    const result = await authService.refreshToken(refreshToken);
+
+    if (result.status === HttpStatuses.Unauthorized) {
+      res.status(result.status).send(createError(result.extensions));
+      return;
+    }
+
+    res.cookie('refreshToken', result.data?.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
+
+    res.status(result.status).send({ accessToken: result.data?.accessToken });
   },
 );
 
@@ -118,6 +128,7 @@ authRouters.post(
 );
 authRouters.post(
   '/registration-email-resending',
+  rateLimitMiddleware,
   registrationEmailResendingValidation,
   throwValidationErrorsDTO,
   async (req: Request<{}, {}, { email: string }, {}>, res: Response) => {
@@ -132,6 +143,7 @@ authRouters.post(
 );
 authRouters.post(
   '/registration-confirmation',
+  rateLimitMiddleware,
   async (req: Request<{}, {}, { code: string }, {}>, res: Response) => {
     const result = await authService.confirmationUser(req.body.code);
     if (result.status === HttpStatuses.BadRequest) {

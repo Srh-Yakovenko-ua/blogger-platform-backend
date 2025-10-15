@@ -3,6 +3,7 @@ import { HttpStatuses } from '../shared/enums/http-statuses';
 import {
   blogsCollections,
   commentsCollections,
+  deviceSessionsCollections,
   postsCollections,
   usersCollections,
 } from '../setup/setup-mongo-db';
@@ -15,6 +16,7 @@ testingRouters.delete('', async (_req: Request, res: Response) => {
     blogsCollections.deleteMany({}),
     usersCollections.deleteMany({}),
     commentsCollections.deleteMany({}),
+    deviceSessionsCollections.deleteMany({}),
   ])
     .then(() => {
       res.sendStatus(HttpStatuses.NoContent);
